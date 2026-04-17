@@ -52,12 +52,12 @@ pill-detection-team2/
 ### 설치
 
 ```bash
-git clone https://github.com/<org>/pill-detection-team2.git
-cd pill-detection-team2
+git clone https://github.com/Yopkigom/codeit-part2-2team-project.git
+cd codeit-part2-2team-project
 
 # 가상환경 생성 (conda 권장)
-conda create -n pill-detection python=3.10 -y
-conda activate pill-detection
+conda create -n codeit-part2-2team-project python=3.10 -y
+conda activate codeit-part2-2team-project
 
 pip install -r requirements.txt
 ```
