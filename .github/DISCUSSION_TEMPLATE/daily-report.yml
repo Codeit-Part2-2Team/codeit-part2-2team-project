@@ -1,21 +1,12 @@
 # .github/DISCUSSION_TEMPLATE/daily-report.yml
-title: "[Daily] "
+title: "이름 - 26년 0월 0일 데일리 리포트"
 labels: ["daily-report"]
 body:
   - type: markdown
     attributes:
       value: |
         ## 📋 데일리 리포트
-        > 날짜는 `YYYY-MM-DD` 형식으로 직접 입력해 주세요.
-
-  - type: input
-    id: date
-    attributes:
-      label: 📅 날짜
-      description: "오늘 날짜를 입력해 주세요 (예: 2026-04-21)"
-      placeholder: "YYYY-MM-DD"
-    validations:
-      required: true
+        > 제목의 이름과 날짜는 직접 입력해 주세요!
 
   - type: textarea
     id: work-done
@@ -25,9 +16,9 @@ body:
       value: |
         | 작업 항목 | 진행률 | 비고 |
         |-----------|--------|------|
-        | 작업 내용을 입력하세요 | 0% | |
-        | 작업 내용을 입력하세요 | 0% | |
-        | 작업 내용을 입력하세요 | 0% | |
+        | 작업 내용 1 | 0% | |
+        | 작업 내용 2 | 0% | |
+        | 작업 내용 3 | 0% | |
     validations:
       required: true
 
@@ -37,7 +28,6 @@ body:
       label: 🤝 협업 중 제안 / 피드백
       description: "팀원에 대한 피드백, 프로세스 개선 제안 등을 자유롭게 적어 주세요."
       placeholder: |
-        - PR 리뷰 응답 시간을 줄이면 좋겠습니다.
         - 없음
     validations:
       required: false
@@ -60,7 +50,7 @@ body:
       placeholder: |
         - 없음
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: tomorrow
@@ -68,7 +58,6 @@ body:
       label: 📌 내일 할 일
       description: "내일 예정된 작업 목록을 기재해 주세요."
       placeholder: |
-        - 회원가입 유효성 검사 완성
-        - PR #25 리뷰 요청
+        - 내일 할 일
     validations:
       required: true
