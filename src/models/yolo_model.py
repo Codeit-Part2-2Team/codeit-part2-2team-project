@@ -1,10 +1,10 @@
 """
-YOLOv26 모델.
+YOLO 모델 래퍼.
 
 config.yaml 하나로 학습·추론·내보내기를 모두 제어한다.
 
 사용 예:
-    model = YOLOv26("experiments/exp_20260420_baseline_yolo26n/config.yaml")
+    model = YOLOModel("experiments/exp_20260420_baseline_yolo26n/config.yaml")
     model.train()
     model.predict("data/raw/test/")
 """
@@ -25,8 +25,11 @@ def load_config(path: str | Path) -> dict:
         return yaml.safe_load(f)
 
 
-class YOLOv26:
-    """config 기반 YOLOv26 래퍼.
+class YOLOModel:
+    """config 기반 YOLO 래퍼.
+
+    config의 model.name으로 모델 종류를 지정하므로 yolo26n, yolo26s 등
+    어떤 YOLO 모델이든 교체해서 사용할 수 있다.
 
     Args:
         config: config.yaml 경로 또는 이미 파싱된 딕셔너리.

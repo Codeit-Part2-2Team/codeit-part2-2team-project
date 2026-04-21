@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.models.yolo26 import YOLOv26
+from src.models.yolo_model import YOLOModel
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--device", default="0", help="GPU 번호 또는 'cpu'")
     args = parser.parse_args()
 
-    model = YOLOv26(args.config)
+    model = YOLOModel(args.config)
 
     # CLI에서 device를 지정했을 때만 config를 덮어쓴다.
     if args.device:

@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.models.yolo26 import YOLOv26
+from src.models.yolo_model import YOLOModel
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     parser.add_argument("--output", default="results/predictions.json", help="predictions.json 저장 경로")
     args = parser.parse_args()
 
-    model = YOLOv26(args.config)
+    model = YOLOModel(args.config)
     model.model.load(args.weights)  # config에서 초기화한 모델에 학습된 가중치를 덮어쓴다.
 
     predictions = model.predict(args.source, output=args.output)
