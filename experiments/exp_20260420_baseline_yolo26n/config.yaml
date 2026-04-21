@@ -1,0 +1,41 @@
+seed: 42
+
+model:
+  name: yolo26n
+  pretrained: true
+
+data:
+  yaml: data/processed/dataset.yaml
+  imgsz: 640
+  workers: 4
+
+train:
+  epochs: 100
+  batch: 16
+  optimizer: AdamW
+  lr0: 0.001
+  lrf: 0.01
+  momentum: 0.937
+  weight_decay: 0.0005
+  warmup_epochs: 3
+  patience: 20
+
+augment:
+  mosaic: 1.0
+  mixup: 0.1
+  copy_paste: 0.0
+  flipud: 0.0
+  fliplr: 0.5
+  hsv_h: 0.015
+  hsv_s: 0.7
+  hsv_v: 0.4
+
+val:
+  conf: 0.25
+  iou: 0.45
+  max_det: 300
+
+output:
+  project: experiments
+  name: exp_20260420_baseline_yolo26n
+  save_period: 10
