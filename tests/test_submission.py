@@ -1,10 +1,8 @@
 """make_submission.py CSV 변환 로직 단위 테스트."""
 
-import json
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 
 def run_make_submission(predictions: list[dict], tmp_path: Path) -> pd.DataFrame:
