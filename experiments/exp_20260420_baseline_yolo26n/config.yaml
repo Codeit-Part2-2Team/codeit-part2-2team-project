@@ -19,6 +19,7 @@ train:
   weight_decay: 0.0005
   warmup_epochs: 3
   patience: 20
+  device: ""
 
 augment:
   mosaic: 1.0

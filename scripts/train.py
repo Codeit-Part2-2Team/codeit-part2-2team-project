@@ -21,13 +21,13 @@ def main():
     parser.add_argument(
         "--data", default=None, help="dataset.yaml 경로 (config의 data.yaml을 덮어씀)"
     )
-    parser.add_argument("--device", default="0", help="GPU 번호 또는 'cpu'")
+    parser.add_argument("--device", default=None, help="GPU 번호 또는 'cpu' (미지정 시 config 값 사용)")
     args = parser.parse_args()
 
     model = YOLOModel(args.config)
 
-    # CLI에서 device를 지정했을 때만 config를 덮어쓴다.
-    if args.device:
+    # CLI에서 device를 명시한 경우에만 config를 덮어쓴다.
+    if args.device is not None:
         model.cfg["train"]["device"] = args.device
 
     metrics = model.train(data_yaml=args.data)

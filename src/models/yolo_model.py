@@ -94,6 +94,7 @@ class YOLOModel:
             conf=cfg["val"]["conf"],
             iou=cfg["val"]["iou"],
             max_det=cfg["val"]["max_det"],
+            device=cfg["train"]["device"],
             # 출력 경로: experiments/<name>/ 아래에 저장된다.
             project=out["project"],
             name=out["name"],
