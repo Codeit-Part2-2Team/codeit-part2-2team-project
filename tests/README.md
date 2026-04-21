@@ -23,10 +23,9 @@ pytest -v --html=reports/test_report.html
 
 ```
 tests/
-└── model_test/
-    ├── conftest.py           # 공통 픽스처 (sample_config, sample_predictions)
-    ├── test_yolo_model.py
-    └── test_submission.py
+  ├── conftest.py           # 공통 픽스처 (sample_config, sample_predictions)
+  ├── test_yolo_model.py
+  └── test_submission.py
 ```
 
 > Ultralytics YOLO 모델 로딩은 `unittest.mock`으로 대체하므로 가중치 파일 없이 동작합니다.
