@@ -6,10 +6,10 @@
 
 ```bash
 # 프로젝트 루트에서 실행
-pytest -v
+python -m pytest -v
 
 # HTML 리포트 생성
-pytest -v --html=reports/test_report.html
+python -m pytest -v --html=reports/test_report.html
 ```
 
 ## 테스트 파일 목록
