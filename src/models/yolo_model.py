@@ -42,7 +42,11 @@ class YOLOModel:
         model_cfg = self.cfg["model"]
         # pretrained=True 이면 Ultralytics 허브에서 사전학습 가중치를 받아온다.
         # pretrained=False 또는 resume 시에는 name에 .pt 경로를 직접 넣는다.
-        weights = f"{model_cfg['name']}.pt" if model_cfg.get("pretrained", True) else model_cfg["name"]
+        weights = (
+            f"{model_cfg['name']}.pt"
+            if model_cfg.get("pretrained", True)
+            else model_cfg["name"]
+        )
         self.model = YOLO(weights)
 
     # ------------------------------------------------------------------
@@ -71,8 +75,8 @@ class YOLOModel:
             imgsz=cfg["data"]["imgsz"],
             workers=cfg["data"]["workers"],
             optimizer=cfg["train"]["optimizer"],
-            lr0=cfg["train"]["lr0"],          # 초기 학습률
-            lrf=cfg["train"]["lrf"],          # 최종 학습률 = lr0 * lrf
+            lr0=cfg["train"]["lr0"],  # 초기 학습률
+            lrf=cfg["train"]["lrf"],  # 최종 학습률 = lr0 * lrf
             momentum=cfg["train"]["momentum"],
             weight_decay=cfg["train"]["weight_decay"],
             warmup_epochs=cfg["train"]["warmup_epochs"],
@@ -93,7 +97,7 @@ class YOLOModel:
             # 출력 경로: experiments/<name>/ 아래에 저장된다.
             project=out["project"],
             name=out["name"],
-            save_period=out["save_period"],   # N 에폭마다 중간 가중치 저장
+            save_period=out["save_period"],  # N 에폭마다 중간 가중치 저장
             seed=cfg.get("seed", 42),
             exist_ok=True,
         )
@@ -107,7 +111,9 @@ class YOLOModel:
     # 추론
     # ------------------------------------------------------------------
 
-    def predict(self, source: str | Path, output: str | Path = "results/predictions.json") -> list[dict]:
+    def predict(
+        self, source: str | Path, output: str | Path = "results/predictions.json"
+    ) -> list[dict]:
         """이미지 디렉터리에 대해 추론을 실행하고 predictions.json을 저장한다.
 
         Args:
@@ -121,8 +127,8 @@ class YOLOModel:
         cfg = self.cfg["val"]
         results = self.model.predict(
             source=str(source),
-            conf=cfg["conf"],     # 신뢰도 임계값 이하 박스 제거
-            iou=cfg["iou"],       # NMS IoU 임계값
+            conf=cfg["conf"],  # 신뢰도 임계값 이하 박스 제거
+            iou=cfg["iou"],  # NMS IoU 임계값
             max_det=cfg["max_det"],
             save=False,
         )
@@ -133,12 +139,16 @@ class YOLOModel:
             if r.boxes is not None:
                 for box in r.boxes:
                     x1, y1, x2, y2 = box.xyxy[0].tolist()  # 절대 픽셀 좌표
-                    detections.append({
-                        "class_name": r.names[int(box.cls[0])],
-                        "bbox": [x1, y1, x2, y2],
-                        "score": float(box.conf[0]),
-                    })
-            predictions.append({"image_id": Path(r.path).stem, "detections": detections})
+                    detections.append(
+                        {
+                            "class_name": r.names[int(box.cls[0])],
+                            "bbox": [x1, y1, x2, y2],
+                            "score": float(box.conf[0]),
+                        }
+                    )
+            predictions.append(
+                {"image_id": Path(r.path).stem, "detections": detections}
+            )
 
         output = Path(output)
         output.parent.mkdir(parents=True, exist_ok=True)

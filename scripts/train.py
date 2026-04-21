@@ -18,7 +18,9 @@ from src.models.yolo_model import YOLOModel
 def main():
     parser = argparse.ArgumentParser(description="YOLOv26 학습")
     parser.add_argument("--config", required=True, help="config.yaml 경로")
-    parser.add_argument("--data", default=None, help="dataset.yaml 경로 (config의 data.yaml을 덮어씀)")
+    parser.add_argument(
+        "--data", default=None, help="dataset.yaml 경로 (config의 data.yaml을 덮어씀)"
+    )
     parser.add_argument("--device", default="0", help="GPU 번호 또는 'cpu'")
     args = parser.parse_args()
 

@@ -9,10 +9,10 @@ import yaml
 
 from src.models.yolo_model import YOLOModel, load_config
 
-
 # ---------------------------------------------------------------------------
 # load_config
 # ---------------------------------------------------------------------------
+
 
 def test_load_config_reads_yaml(tmp_path):
     config_file = tmp_path / "config.yaml"
@@ -32,6 +32,7 @@ def test_load_config_missing_file():
 # ---------------------------------------------------------------------------
 # YOLOModel.__init__
 # ---------------------------------------------------------------------------
+
 
 @patch("src.models.yolo_model.YOLO")
 def test_init_with_dict_config(mock_yolo, sample_config):
@@ -62,6 +63,7 @@ def test_init_with_yaml_file(mock_yolo, sample_config, tmp_path):
 # ---------------------------------------------------------------------------
 # YOLOModel.predict
 # ---------------------------------------------------------------------------
+
 
 def _make_mock_box(x1, y1, x2, y2, score, cls_idx):
     """Ultralytics boxes 객체 하나를 흉내 낸 mock."""

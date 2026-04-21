@@ -41,12 +41,16 @@ def main():
         for det in item["detections"]:
             x1, y1, x2, y2 = det["bbox"]
             # PredictionString 형식: "클래스명 score x1 y1 x2 y2" 를 검출 수만큼 이어붙인다.
-            parts.append(f"{det['class_name']} {det['score']:.6f} {x1:.1f} {y1:.1f} {x2:.1f} {y2:.1f}")
+            parts.append(
+                f"{det['class_name']} {det['score']:.6f} {x1:.1f} {y1:.1f} {x2:.1f} {y2:.1f}"
+            )
         rows.append({"image_id": item["image_id"], "PredictionString": " ".join(parts)})
 
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(rows, columns=["image_id", "PredictionString"]).to_csv(out, index=False)
+    pd.DataFrame(rows, columns=["image_id", "PredictionString"]).to_csv(
+        out, index=False
+    )
     print(f"제출 파일 생성 완료: {out}")
 
 

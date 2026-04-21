@@ -47,8 +47,16 @@ def sample_predictions() -> list[dict]:
         {
             "image_id": "test_0001",
             "detections": [
-                {"class_name": "Crestor 10mg tab", "bbox": [10.0, 20.0, 100.0, 200.0], "score": 0.87},
-                {"class_name": "Aspirin 100mg tab", "bbox": [150.0, 50.0, 300.0, 180.0], "score": 0.72},
+                {
+                    "class_name": "Crestor 10mg tab",
+                    "bbox": [10.0, 20.0, 100.0, 200.0],
+                    "score": 0.87,
+                },
+                {
+                    "class_name": "Aspirin 100mg tab",
+                    "bbox": [150.0, 50.0, 300.0, 180.0],
+                    "score": 0.72,
+                },
             ],
         },
         {
