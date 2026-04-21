@@ -139,10 +139,12 @@ class YOLOModel:
             if r.boxes is not None:
                 for box in r.boxes:
                     x1, y1, x2, y2 = box.xyxy[0].tolist()  # 절대 픽셀 좌표
+                    cls_idx = int(box.cls[0])
                     detections.append(
                         {
-                            "class_name": r.names[int(box.cls[0])],
-                            "bbox": [x1, y1, x2, y2],
+                            "class_id": cls_idx,
+                            "class_name": r.names[cls_idx],
+                            "bbox": [x1, y1, x2, y2],  # xyxy
                             "score": float(box.conf[0]),
                         }
                     )

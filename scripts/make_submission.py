@@ -4,11 +4,11 @@ Kaggle 제출 CSV 생성 CLI.
 predictions.json을 읽어 대회 제출 포맷(submission.csv)으로 변환한다.
 
 predictions.json 포맷:
-    [{"image_id": "test_0001", "detections": [{"class_name": str, "bbox": [x1,y1,x2,y2], "score": float}]}]
+    [{"image_id": "1", "detections": [{"class_id": int, "class_name": str, "bbox": [x1,y1,x2,y2], "score": float}]}]
 
 submission.csv 포맷:
-    image_id,PredictionString
-    test_0001,Crestor 10mg tab 0.870000 10.0 20.0 100.0 200.0 ...
+    annotation_id, image_id, category_id, bbox_x, bbox_y, bbox_w, bbox_h, score
+    1, 1, 1, 156, 247, 211, 456, 0.91
 
 사용 예:
     python scripts/make_submission.py \\
@@ -36,22 +36,28 @@ def main():
         data = json.load(f)
 
     rows = []
+    annotation_id = 1
     for item in data:
-        parts = []
+        image_id = item["image_id"]
         for det in item["detections"]:
             x1, y1, x2, y2 = det["bbox"]
-            # PredictionString 형식: "클래스명 score x1 y1 x2 y2" 를 검출 수만큼 이어붙인다.
-            parts.append(
-                f"{det['class_name']} {det['score']:.6f} {x1:.1f} {y1:.1f} {x2:.1f} {y2:.1f}"
-            )
-        rows.append({"image_id": item["image_id"], "PredictionString": " ".join(parts)})
+            # 제출 포맷은 xywh (COCO 스타일)
+            rows.append({
+                "annotation_id": annotation_id,
+                "image_id": image_id,
+                "category_id": det["class_id"],
+                "bbox_x": round(x1),
+                "bbox_y": round(y1),
+                "bbox_w": round(x2 - x1),
+                "bbox_h": round(y2 - y1),
+                "score": det["score"],
+            })
+            annotation_id += 1
 
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(rows, columns=["image_id", "PredictionString"]).to_csv(
-        out, index=False
-    )
-    print(f"제출 파일 생성 완료: {out}")
+    pd.DataFrame(rows).to_csv(out, index=False)
+    print(f"제출 파일 생성 완료: {out} ({len(rows)}개 검출)")
 
 
 if __name__ == "__main__":

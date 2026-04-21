@@ -45,22 +45,24 @@ def sample_predictions() -> list[dict]:
     """테스트용 predictions.json 데이터."""
     return [
         {
-            "image_id": "test_0001",
+            "image_id": "1",
             "detections": [
                 {
+                    "class_id": 1,
                     "class_name": "Crestor 10mg tab",
-                    "bbox": [10.0, 20.0, 100.0, 200.0],
-                    "score": 0.87,
+                    "bbox": [156.0, 247.0, 367.0, 703.0],  # xyxy
+                    "score": 0.91,
                 },
                 {
+                    "class_id": 24,
                     "class_name": "Aspirin 100mg tab",
-                    "bbox": [150.0, 50.0, 300.0, 180.0],
-                    "score": 0.72,
+                    "bbox": [498.0, 40.0, 958.0, 514.0],  # xyxy
+                    "score": 0.78,
                 },
             ],
         },
         {
-            "image_id": "test_0002",
+            "image_id": "3",
             "detections": [],  # 검출 없음
         },
     ]
