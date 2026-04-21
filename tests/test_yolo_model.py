@@ -1,7 +1,6 @@
 """YOLOModel 래퍼 단위 테스트."""
 
 import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest

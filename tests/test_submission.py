@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 
 def run_make_submission(predictions: list[dict], tmp_path: Path) -> pd.DataFrame:
