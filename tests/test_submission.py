@@ -14,16 +14,18 @@ def run_make_submission(predictions: list[dict], tmp_path: Path) -> pd.DataFrame
     for item in predictions:
         for det in item["detections"]:
             x1, y1, x2, y2 = det["bbox"]
-            rows.append({
-                "annotation_id": annotation_id,
-                "image_id": item["image_id"],
-                "category_id": det["class_id"],
-                "bbox_x": round(x1),
-                "bbox_y": round(y1),
-                "bbox_w": round(x2 - x1),
-                "bbox_h": round(y2 - y1),
-                "score": det["score"],
-            })
+            rows.append(
+                {
+                    "annotation_id": annotation_id,
+                    "image_id": item["image_id"],
+                    "category_id": det["class_id"],
+                    "bbox_x": round(x1),
+                    "bbox_y": round(y1),
+                    "bbox_w": round(x2 - x1),
+                    "bbox_h": round(y2 - y1),
+                    "score": det["score"],
+                }
+            )
             annotation_id += 1
 
     pd.DataFrame(rows).to_csv(out_file, index=False)
@@ -33,7 +35,16 @@ def run_make_submission(predictions: list[dict], tmp_path: Path) -> pd.DataFrame
 def test_submission_columns(sample_predictions, tmp_path):
     """CSV에 올바른 컬럼이 있어야 한다."""
     df = run_make_submission(sample_predictions, tmp_path)
-    expected = ["annotation_id", "image_id", "category_id", "bbox_x", "bbox_y", "bbox_w", "bbox_h", "score"]
+    expected = [
+        "annotation_id",
+        "image_id",
+        "category_id",
+        "bbox_x",
+        "bbox_y",
+        "bbox_w",
+        "bbox_h",
+        "score",
+    ]
     assert list(df.columns) == expected
 
 
@@ -57,8 +68,8 @@ def test_submission_bbox_xywh_conversion(sample_predictions, tmp_path):
     # 픽스처의 첫 번째 검출: bbox [156, 247, 367, 703]
     assert first["bbox_x"] == 156
     assert first["bbox_y"] == 247
-    assert first["bbox_w"] == 367 - 156   # x2 - x1
-    assert first["bbox_h"] == 703 - 247   # y2 - y1
+    assert first["bbox_w"] == 367 - 156  # x2 - x1
+    assert first["bbox_h"] == 703 - 247  # y2 - y1
 
 
 def test_submission_category_id(sample_predictions, tmp_path):

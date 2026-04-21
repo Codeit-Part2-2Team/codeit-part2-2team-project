@@ -21,7 +21,9 @@ def main():
     parser.add_argument(
         "--data", default=None, help="dataset.yaml 경로 (config의 data.yaml을 덮어씀)"
     )
-    parser.add_argument("--device", default=None, help="GPU 번호 또는 'cpu' (미지정 시 config 값 사용)")
+    parser.add_argument(
+        "--device", default=None, help="GPU 번호 또는 'cpu' (미지정 시 config 값 사용)"
+    )
     args = parser.parse_args()
 
     model = YOLOModel(args.config)

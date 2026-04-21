@@ -42,16 +42,18 @@ def main():
         for det in item["detections"]:
             x1, y1, x2, y2 = det["bbox"]
             # 제출 포맷은 xywh (COCO 스타일)
-            rows.append({
-                "annotation_id": annotation_id,
-                "image_id": image_id,
-                "category_id": det["class_id"],
-                "bbox_x": round(x1),
-                "bbox_y": round(y1),
-                "bbox_w": round(x2 - x1),
-                "bbox_h": round(y2 - y1),
-                "score": det["score"],
-            })
+            rows.append(
+                {
+                    "annotation_id": annotation_id,
+                    "image_id": image_id,
+                    "category_id": det["class_id"],
+                    "bbox_x": round(x1),
+                    "bbox_y": round(y1),
+                    "bbox_w": round(x2 - x1),
+                    "bbox_h": round(y2 - y1),
+                    "score": det["score"],
+                }
+            )
             annotation_id += 1
 
     out = Path(args.output)
