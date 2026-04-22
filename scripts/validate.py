@@ -21,13 +21,21 @@ from src.training.trainer import Trainer
 def main():
     parser = argparse.ArgumentParser(description="YOLOv26 검증")
     parser.add_argument("--config", required=True, help="config.yaml 경로")
-    parser.add_argument("--weights", required=True, help="best.pt 경로")
+    parser.add_argument(
+        "--weights", default=None, help="best.pt 경로 (미지정 시 config output에서 자동 조합)"
+    )
     parser.add_argument(
         "--data", default=None, help="dataset.yaml 경로 (config의 data.yaml을 덮어씀)"
     )
     args = parser.parse_args()
 
-    model = YOLOModel(args.config).load_weights(args.weights)
+    model = YOLOModel(args.config)
+    cfg = model.cfg
+
+    # 우선순위: CLI --weights > 자동 조합 (output.project/output.name/weights/best.pt)
+    weights = args.weights or f"{cfg['output']['project']}/{cfg['output']['name']}/weights/best.pt"
+    model.load_weights(weights)
+
     metrics = Trainer(model).validate(data_yaml=args.data)
     print(f"mAP50={metrics['mAP50']:.4f}  mAP50-95={metrics['mAP50_95']:.4f}")
 
