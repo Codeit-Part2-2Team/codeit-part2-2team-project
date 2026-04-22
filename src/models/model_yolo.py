@@ -31,7 +31,12 @@ class YOLOModel:
     ):
         """Ultralytics Result 리스트를 그대로 반환. 포맷 변환은 Predictor가 담당."""
         return self.model.predict(
-            source=source, conf=conf, iou=iou, max_det=max_det, augment=augment, save=False
+            source=source,
+            conf=conf,
+            iou=iou,
+            max_det=max_det,
+            augment=augment,
+            save=False,
         )
 
     def raw_train(self, **kwargs):
