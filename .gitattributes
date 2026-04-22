@@ -1,5 +1,2 @@
-# 모든 텍스트 파일을 LF로 정규화
-* text=auto eol=lf
-
 # Git 내부는 LF, checkout 시 OS에 맞게
 * text=auto
