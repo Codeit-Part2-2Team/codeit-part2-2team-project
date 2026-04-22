@@ -10,19 +10,11 @@ config.yaml 하나로 학습·추론·내보내기를 모두 제어한다.
 """
 
 import json
-import random
 from pathlib import Path
 
-import numpy as np
-import torch
-import yaml
 from ultralytics import YOLO
 
-
-def load_config(path: str | Path) -> dict:
-    """YAML 파일을 읽어 딕셔너리로 반환한다."""
-    with open(path) as f:
-        return yaml.safe_load(f)
+from src.utils.config import fix_seed, load_config
 
 
 class YOLOModel:
@@ -37,7 +29,7 @@ class YOLOModel:
 
     def __init__(self, config: str | Path | dict):
         self.cfg = config if isinstance(config, dict) else load_config(config)
-        self._fix_seed(self.cfg.get("seed", 42))
+        fix_seed(self.cfg.get("seed", 42))
 
         model_cfg = self.cfg["model"]
         # pretrained=True 이면 Ultralytics 허브에서 사전학습 가중치를 받아온다.
@@ -171,18 +163,3 @@ class YOLOModel:
             format: "onnx" 또는 "tflite".
         """
         self.model.export(format=format, imgsz=self.cfg["data"]["imgsz"])
-
-    # ------------------------------------------------------------------
-    # 내부 유틸
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _fix_seed(seed: int) -> None:
-        """Python / NumPy / PyTorch 난수 시드를 고정해 재현성을 보장한다."""
-        random.seed(seed)
-        np.random.seed(seed)
-        torch.manual_seed(seed)
-        torch.cuda.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)  # 멀티 GPU 대비
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False

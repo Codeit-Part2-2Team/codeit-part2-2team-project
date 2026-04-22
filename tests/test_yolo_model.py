@@ -6,27 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 
-from src.models.yolo_model import YOLOModel, load_config
-
-# ---------------------------------------------------------------------------
-# load_config
-# ---------------------------------------------------------------------------
-
-
-def test_load_config_reads_yaml(tmp_path):
-    config_file = tmp_path / "config.yaml"
-    config_file.write_text("seed: 42\nmodel:\n  name: yolo26n\n")
-
-    cfg = load_config(config_file)
-
-    assert cfg["seed"] == 42
-    assert cfg["model"]["name"] == "yolo26n"
-
-
-def test_load_config_missing_file():
-    with pytest.raises(FileNotFoundError):
-        load_config("nonexistent/config.yaml")
-
+from src.models.yolo_model import YOLOModel
 
 # ---------------------------------------------------------------------------
 # YOLOModel.__init__
