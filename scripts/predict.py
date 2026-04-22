@@ -14,7 +14,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.models.yolo_model import YOLOModel
+from src.models.model_yolo import YOLOModel
+from src.models.predictor import Predictor
 
 
 def main():
@@ -29,14 +30,11 @@ def main():
         default="results/predictions.json",
         help="predictions.json 저장 경로",
     )
+    parser.add_argument("--tta", action="store_true", help="TTA(Test Time Augmentation) 활성화")
     args = parser.parse_args()
 
-    model = YOLOModel(args.config)
-    model.model.load(
-        args.weights
-    )  # config에서 초기화한 모델에 학습된 가중치를 덮어쓴다.
-
-    predictions = model.predict(args.source, output=args.output)
+    model = YOLOModel(args.config).load_weights(args.weights)
+    predictions = Predictor(model).predict(args.source, output=args.output, tta=args.tta)
     print(f"완료: {len(predictions)}개 이미지 → {args.output}")
 
 

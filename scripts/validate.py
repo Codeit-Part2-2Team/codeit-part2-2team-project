@@ -1,9 +1,11 @@
 """
-학습 CLI.
+검증 CLI.
 
 사용 예:
-    python scripts/train.py --config experiments/exp_20260420_baseline_yolo26n/config.yaml
-    python scripts/train.py --config experiments/.../config.yaml --data data/processed/dataset.yaml --device cpu
+    python scripts/validate.py \\
+        --config experiments/exp_20260420_baseline_yolo26n/config.yaml \\
+        --weights experiments/exp_20260420_baseline_yolo26n/weights/best.pt \\
+        --data data/processed/dataset.yaml
 """
 
 import argparse
@@ -17,22 +19,16 @@ from src.training.trainer import Trainer
 
 
 def main():
-    parser = argparse.ArgumentParser(description="YOLOv26 학습")
+    parser = argparse.ArgumentParser(description="YOLOv26 검증")
     parser.add_argument("--config", required=True, help="config.yaml 경로")
+    parser.add_argument("--weights", required=True, help="best.pt 경로")
     parser.add_argument(
         "--data", default=None, help="dataset.yaml 경로 (config의 data.yaml을 덮어씀)"
     )
-    parser.add_argument(
-        "--device", default=None, help="GPU 번호 또는 'cpu' (미지정 시 config 값 사용)"
-    )
     args = parser.parse_args()
 
-    model = YOLOModel(args.config)
-
-    if args.device is not None:
-        model.cfg["train"]["device"] = args.device
-
-    metrics = Trainer(model).train(data_yaml=args.data)
+    model = YOLOModel(args.config).load_weights(args.weights)
+    metrics = Trainer(model).validate(data_yaml=args.data)
     print(f"mAP50={metrics['mAP50']:.4f}  mAP50-95={metrics['mAP50_95']:.4f}")
 
 
