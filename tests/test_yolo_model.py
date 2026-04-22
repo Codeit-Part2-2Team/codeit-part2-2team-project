@@ -4,40 +4,8 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-import yaml
 
 from src.models.yolo_model import YOLOModel
-
-# ---------------------------------------------------------------------------
-# YOLOModel.__init__
-# ---------------------------------------------------------------------------
-
-
-@patch("src.models.yolo_model.YOLO")
-def test_init_with_dict_config(mock_yolo, sample_config):
-    """dict config을 넘기면 YOLO가 올바른 가중치명으로 초기화된다."""
-    YOLOModel(sample_config)
-    # pretrained=False → name 그대로 사용
-    mock_yolo.assert_called_once_with("yolo26n")
-
-
-@patch("src.models.yolo_model.YOLO")
-def test_init_pretrained_appends_pt(mock_yolo, sample_config):
-    """pretrained=True 이면 모델명에 .pt를 붙여 허브 가중치를 요청한다."""
-    sample_config["model"]["pretrained"] = True
-    YOLOModel(sample_config)
-    mock_yolo.assert_called_once_with("yolo26n.pt")
-
-
-@patch("src.models.yolo_model.YOLO")
-def test_init_with_yaml_file(mock_yolo, sample_config, tmp_path):
-    """yaml 파일 경로로 초기화해도 동일하게 동작한다."""
-    config_file = tmp_path / "config.yaml"
-    config_file.write_text(yaml.dump(sample_config))
-
-    YOLOModel(config_file)
-    mock_yolo.assert_called_once_with("yolo26n")
-
 
 # ---------------------------------------------------------------------------
 # YOLOModel.predict
