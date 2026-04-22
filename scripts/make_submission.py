@@ -21,9 +21,9 @@ import json
 import sys
 from pathlib import Path
 
-import pandas as pd
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src.utils.submission import save_submission
 
 
 def main():
@@ -33,33 +33,10 @@ def main():
     args = parser.parse_args()
 
     with open(args.predictions, encoding="utf-8") as f:
-        data = json.load(f)
+        predictions = json.load(f)
 
-    rows = []
-    annotation_id = 1
-    for item in data:
-        image_id = item["image_id"]
-        for det in item["detections"]:
-            x1, y1, x2, y2 = det["bbox"]
-            # 제출 포맷은 xywh (COCO 스타일)
-            rows.append(
-                {
-                    "annotation_id": annotation_id,
-                    "image_id": image_id,
-                    "category_id": det["class_id"],
-                    "bbox_x": round(x1),
-                    "bbox_y": round(y1),
-                    "bbox_w": round(x2 - x1),
-                    "bbox_h": round(y2 - y1),
-                    "score": det["score"],
-                }
-            )
-            annotation_id += 1
-
-    out = Path(args.output)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(rows).to_csv(out, index=False)
-    print(f"제출 파일 생성 완료: {out} ({len(rows)}개 검출)")
+    save_submission(predictions, args.output)
+    print(f"제출 파일 생성 완료: {args.output}")
 
 
 if __name__ == "__main__":
