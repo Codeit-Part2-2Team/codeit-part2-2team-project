@@ -16,15 +16,21 @@ python -m pytest -v --html=reports/test_report.html
 
 | 파일 | 테스트 대상 | 주요 검증 내용 |
 |------|------------|---------------|
-| `test_yolo_model.py` | `src/models/yolo_model.py` | config 로드, 모델 초기화, 추론 출력 포맷, JSON 저장 |
-| `test_submission.py` | `scripts/make_submission.py` | CSV 컬럼 구조, 행 수, PredictionString 포맷, 빈 검출 처리 |
+| `test_config.py` | `src/utils/config.py` | YAML 로드, 필수 키 검증, 시드 고정 재현성 |
+| `test_model_yolo.py` | `src/models/model_yolo.py` | 모델 초기화, 가중치 로드 체이닝, raw_predict 인자 전달 |
+| `test_trainer.py` | `src/training/trainer.py` | kwargs 병합, device 중복 없음, mAP 반환 포맷 |
+| `test_predictor.py` | `src/models/predictor.py` | _parse_results 스키마, JSON 저장, TTA 인자 전달 |
+| `test_submission.py` | `src/utils/submission.py` | CSV 컬럼 구조, 행 수, bbox xywh 변환, 빈 검출 처리 |
 
 ## 구조
 
 ```
 tests/
   ├── conftest.py           # 공통 픽스처 (sample_config, sample_predictions)
-  ├── test_yolo_model.py
+  ├── test_config.py
+  ├── test_model_yolo.py
+  ├── test_trainer.py
+  ├── test_predictor.py
   └── test_submission.py
 ```
 
