@@ -4,13 +4,15 @@
 
 ## 네이밍 규칙
 
+```
 experiments/
 └── exp_YYYYMMDD_<model>_<purpose>/   # 예: exp_20260422_yolov8s_baseline
     ├── config.yaml                    # 실험 설정 ✅ Git 관리
     ├── log/                           # 학습 로그  ❌ .gitignore
     ├── results/                       # mAP 곡선, 혼동행렬 ✅ 이미지만
     └── weights/                       # best.pt, last.pt ❌ .gitignore
-    
+```
+
 ### 네이밍 예시
 - `exp_20260422_yolov8s_baseline`
 - `exp_20260422_yolo11s_baseline`
