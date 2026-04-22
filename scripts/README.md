@@ -68,9 +68,9 @@ python scripts/convert_annotations.py \
 
 | 인자 | 필수 | 기본값 | 설명 |
 |------|------|--------|------|
-| --project-root |  | . | 프로젝트 루트 경로 |
-| --raw-annotation-dir |  | raw/extracted/sprint_ai_project1_data/train_annotations | raw json 어노테이션 폴더 |
-| --raw-output-dir |  | processed/raw_yolo_labels | raw 변환 txt 저장 경로 |
-| --ext-label-roots |  | external/extracted/train/labels external/extracted/valid/labels external/extracted/test/labels | external 라벨 폴더 목록 |
-| --ext-output-dir |  | processed/external_labels_unified | external 변환 txt 저장 경로 |
-| --class-id |  | 0 | 단일 클래스 id (pill) |
+| `--project-root` |  | . | 프로젝트 루트 경로 |
+| `--raw-annotation-dir` |  | raw/extracted/sprint_ai_project1_data/train_annotations | raw json 어노테이션 폴더 |
+| `--raw-output-dir` |  | processed/raw_yolo_labels | raw 변환 txt 저장 경로 |
+| `--ext-label-roots` |  | external/extracted/train/labels external/extracted/valid/labels external/extracted/test/labels | external 라벨 폴더 목록 |
+| `--ext-output-dir` |  | processed/external_labels_unified | external 변환 txt 저장 경로 |
+| `--class-id` |  | 0 | 단일 클래스 id (pill) |
