@@ -180,6 +180,18 @@ python scripts/pipeline/run.py \
 | `--predictions` | ✅ | — | predictions.json 경로 |
 | `--output` | ✅ | — | submission.csv 저장 경로 |
 
+### convert_annotations.py
+
+| 인자                     | 필수 | 기본값                   | 설명                    |
+| ---------------------- | -- | --------------------- | --------------------- |
+| `--project-root`       |    | .                     | 프로젝트 루트 경로            |
+| `--raw-annotation-dir` |    | raw/train_annotations | raw json 폴더 경로        |
+| `--raw-output-dir`     |    | processed/raw_labels  | raw YOLO txt 저장 경로    |
+| `--ext-label-roots`    |    | external/labels/*     | external 라벨 폴더들       |
+| `--ext-output-dir`     |    | processed/ext_labels  | external 변환 txt 저장 경로 |
+| `--class-id`           |    | 0                     | 단일 클래스 id (pill)      |
+
+
 ### pipeline/crop.py
 
 | 인자 | 필수 | 기본값 | 설명 |

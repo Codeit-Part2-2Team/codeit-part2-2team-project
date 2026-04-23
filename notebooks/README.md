@@ -2,10 +2,12 @@
 
 | 노트북 | 목적 | 담당 |
 |--------|------|------|
-| `01_eda.ipynb` | 데이터 탐색·클래스 분포 분석 |  |
-| `02_baseline.ipynb` | YOLOv8n Baseline 학습 |  |
-| `03_experiments.ipynb` | 실험 로그·비교 |  |
-| `04_inference.ipynb` | 추론·결과 시각화 | 공용 |
+| `01_eda.ipynb` | 데이터 탐색·클래스 분포 분석 | 소원 |
+| `02_yolo_detection_dataset_build` | stage 1 yolo 모델 Dataset 구축 | 소원 |
+| `03_yolo_classification_dataset_build` | stage 2 yolo 모델 Dataset 구축 | 소원 |
+| `04_baseline.ipynb` | YOLOv8n Baseline 학습 |  |
+| `05_experiments.ipynb` | 실험 로그·비교 |  |
+| `06_inference.ipynb` | 추론·결과 시각화 | 공용 |
 
 ## 규칙
 
