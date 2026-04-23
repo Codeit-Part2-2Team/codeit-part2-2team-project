@@ -54,6 +54,29 @@ def test_build_train_kwargs_resume_flag(sample_config):
     assert trainer._build_train_kwargs("x.yaml", resume=False)["resume"] is False
 
 
+def test_build_train_kwargs_albumentations_override(sample_config):
+    """albumentations 섹션이 있으면 YOLO 중복 augment 항목이 0.0으로 덮어씌워진다."""
+    sample_config["albumentations"] = {"horizontal_flip": {"p": 0.5}}
+    sample_config["augment"]["fliplr"] = 0.5
+    sample_config["augment"]["hsv_h"] = 0.015
+    trainer = Trainer(_make_model(sample_config))
+    kwargs = trainer._build_train_kwargs("x.yaml", resume=False)
+
+    for key in ("fliplr", "flipud", "hsv_h", "hsv_s", "hsv_v", "degrees", "translate", "scale", "shear"):
+        assert kwargs[key] == 0.0, f"{key}가 0.0이어야 합니다"
+
+
+def test_build_train_kwargs_no_albumentations_keeps_augment_values(sample_config):
+    """albumentations 섹션이 없으면 augment 원래 값이 유지된다."""
+    sample_config["augment"]["fliplr"] = 0.5
+    sample_config["augment"]["hsv_h"] = 0.015
+    trainer = Trainer(_make_model(sample_config))
+    kwargs = trainer._build_train_kwargs("x.yaml", resume=False)
+
+    assert kwargs["fliplr"] == 0.5
+    assert kwargs["hsv_h"] == 0.015
+
+
 # ---------------------------------------------------------------------------
 # train()
 # ---------------------------------------------------------------------------

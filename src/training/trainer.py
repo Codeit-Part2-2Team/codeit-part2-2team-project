@@ -2,6 +2,13 @@
 
 from pathlib import Path
 
+# albumentations가 담당하는 항목 — YOLO augment와 중복 적용 방지
+_ALBUMENTATIONS_OVERRIDE = (
+    "fliplr", "flipud",
+    "hsv_h", "hsv_s", "hsv_v",
+    "degrees", "translate", "scale", "shear",
+)
+
 
 class Trainer:
     """model_yolo (또는 미래 모델)을 경유해 학습·검증을 실행하는 퍼사드."""
@@ -41,7 +48,7 @@ class Trainer:
         """cfg 섹션을 병합해 raw_train()에 넘길 dict를 생성한다."""
         cfg = self.model.cfg
         # cfg["train"]에 device가 포함되므로 별도로 추가하지 않는다.
-        return {
+        kwargs = {
             **cfg["train"],
             **cfg["augment"],
             "data": data_yaml,
@@ -57,3 +64,7 @@ class Trainer:
             "exist_ok": True,
             "resume": resume,
         }
+        if cfg.get("albumentations"):
+            for key in _ALBUMENTATIONS_OVERRIDE:
+                kwargs[key] = 0.0
+        return kwargs
