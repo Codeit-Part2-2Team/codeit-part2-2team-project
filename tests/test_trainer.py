@@ -7,6 +7,7 @@ import pytest
 
 from src.training.trainer import Trainer
 
+SEED = 42
 
 def _make_model(sample_config):
     model = MagicMock()
@@ -40,11 +41,11 @@ def test_build_train_kwargs_no_duplicate_device(sample_config):
 
 def test_build_train_kwargs_seed_from_config(sample_config):
     """seed가 cfg에서 올바르게 주입된다."""
-    sample_config["seed"] = 99
+    sample_config["seed"] = SEED
     trainer = Trainer(_make_model(sample_config))
     kwargs = trainer._build_train_kwargs("data/processed/dataset.yaml", resume=False)
 
-    assert kwargs["seed"] == 99
+    assert kwargs["seed"] == SEED
 
 
 def test_build_train_kwargs_resume_flag(sample_config):
