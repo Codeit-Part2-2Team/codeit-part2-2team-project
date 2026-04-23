@@ -88,11 +88,15 @@ data/
 
 ## 데이터셋 다운로드 링크
 
-| 버전 | 파일명 | 링크 | 업로드일 | 비고 |
-|------|--------|------|---------|------|
-| v1.0 | yolo_dataset_v1.zip | [다운로드](https://drive.google.com/file/d/1XzoLXnHHJRP0oR05xeGvsyx1SdgWcWH9/view?usp=drive_link) | 2026-04-22 | raw + external 통합, 단일 클래스 pill, nc=1 |
+> 호정님 자동화 프로그램으로 관리되는 구글 드라이브 공유 폴더입니다.
 
-> 호정님 자동화 프로그램 완성 후 버전 테이블 자동 관리로 전환 예정
+| 버전 | 파일명 | 업로드일 | 비고 |
+|------|--------|---------|------|
+| v1.0 | yolo_dataset_v1.zip | 2026-04-22 | raw + external 통합, 단일 클래스 pill, nc=1 |
+
+**공유 폴더**: [Google Drive](https://drive.google.com/drive/folders/17IO1bHWzBsefKCXl8YKQCb-tI3qxXgdy)
+
+> 최신 버전 다운로드 코드는 호정님이 별도 제공 예정
 
 ## Stage별 진행 가능 조건
 
