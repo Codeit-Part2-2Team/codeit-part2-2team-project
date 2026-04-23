@@ -39,3 +39,9 @@ experiments/
 | exp_20260420_yolo26n_baseline | 2026-04-20 | 승준 | - | 진행 예정 |
 | exp_20260422_yolov8s_baseline | 2026-04-22 | 도혁 | - | 진행 예정 |
 | exp_20260422_yolo11s_baseline | 2026-04-22 | 도혁 | - | 진행 예정 |
+
+## 실험 네이밍 규칙 적용 정책
+
+- 신규 실험부터는 예외 없이 `exp_YYYYMMDD_<model>_<purpose>` 형식을 적용한다
+- 기존 legacy 폴더명(exp_baseline_yolov8s 등)은 순차적으로 정리한다
+- 정리 전 legacy 실험은 예외로 두되 신규 실험에서는 반드시 규칙을 준수한다
