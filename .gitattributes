@@ -1,0 +1,2 @@
+# Git 내부는 LF, checkout 시 OS에 맞게
+* text=auto
