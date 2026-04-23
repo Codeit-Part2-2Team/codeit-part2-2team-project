@@ -12,7 +12,7 @@ CLI 실행 스크립트입니다. **프로젝트 루트**에서 실행하세요.
 | `predict.py` | 저장된 가중치로 이미지 추론 → predictions.json 저장 | 승준 |
 | `validate.py` | 저장된 가중치로 val set 평가 → mAP 출력 | 승준 |
 | `make_submission.py` | predictions.json → Kaggle 제출용 submission.csv 변환 | 도혁 |
-| `convert_annotations.py` | COCO/VOC 어노테이션 → YOLO txt 포맷 변환 🚧 미구현 | 소원 |
+| `convert_annotations.py` | raw/external 어노테이션을 YOLO 라벨로 변환 | 소원 |
 
 ### Stage 2 — 분류기 파이프라인 🚧 구현 예정
 
@@ -107,6 +107,10 @@ python scripts/predict.py \
 python scripts/make_submission.py \
     --predictions experiments/stage1_detection/results/predictions.json \
     --output submissions/submission.csv
+
+# 어노테이션 변환
+python scripts/convert_annotations.py \
+    --project-root .
 ```
 
 ### Stage 2 파이프라인
