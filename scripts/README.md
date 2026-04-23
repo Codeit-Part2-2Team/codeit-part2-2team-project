@@ -161,6 +161,8 @@ python scripts/pipeline/run.py \
 | `--output` | | 자동 조합 | 우선순위: CLI → `{project}/{name}/results/predictions.json` |
 | `--tta` | | `false` | 우선순위: CLI `--tta` → config `val.tta` |
 
+> 참고: `predict.py`에서는 CLI 인자가 먼저 적용됩니다. `--weights`와 `--output`이 없을 경우에만 config의 `output.project/output.name` 기반 경로를 자동 조합합니다.
+
 ### validate.py
 
 | 인자 | 필수 | 기본값 | 설명 |
@@ -168,6 +170,8 @@ python scripts/pipeline/run.py \
 | `--config` | ✅ | — | config.yaml 경로 |
 | `--weights` | | 자동 조합 | 우선순위: CLI → `{project}/{name}/weights/best.pt` |
 | `--data` | | config | dataset.yaml 경로 (덮어쓰기) |
+
+> 참고: `validate.py`에서도 CLI 인자가 먼저 적용됩니다. `--weights`가 없으면 config의 output 설정 기준으로 weights 경로를 자동 조합하며, `--data`가 지정되면 config data 설정을 덮어씁니다.
 
 ### make_submission.py
 
