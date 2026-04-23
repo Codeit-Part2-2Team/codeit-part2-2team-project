@@ -35,6 +35,7 @@ val:
   conf: 0.25
   iou: 0.45
   max_det: 300
+  tta: false
 
 output:
   project: experiments

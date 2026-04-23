@@ -12,7 +12,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.models.yolo_model import YOLOModel
+from src.models.model_yolo import YOLOModel
+from src.training.trainer import Trainer
 
 
 def main():
@@ -28,11 +29,10 @@ def main():
 
     model = YOLOModel(args.config)
 
-    # CLI에서 device를 명시한 경우에만 config를 덮어쓴다.
     if args.device is not None:
         model.cfg["train"]["device"] = args.device
 
-    metrics = model.train(data_yaml=args.data)
+    metrics = Trainer(model).train(data_yaml=args.data)
     print(f"mAP50={metrics['mAP50']:.4f}  mAP50-95={metrics['mAP50_95']:.4f}")
 
 

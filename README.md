@@ -112,12 +112,22 @@ python scripts/train.py \
 
 ```bash
 python scripts/predict.py \
+    --config experiments/exp_baseline_yolov8s/config.yaml \
     --weights experiments/exp_baseline_yolov8s/weights/best.pt \
     --source data/raw/test/
 
 python scripts/make_submission.py \
     --predictions experiments/exp_baseline_yolov8s/results/predictions.json \
     --output submissions/submission.csv
+```
+
+### 검증
+
+```bash
+python scripts/validate.py \
+    --config experiments/exp_baseline_yolov8s/config.yaml \
+    --weights experiments/exp_baseline_yolov8s/weights/best.pt \
+    --data data/processed/dataset.yaml
 ```
 
 ---
