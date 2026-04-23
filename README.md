@@ -130,6 +130,8 @@ python scripts/validate.py \
     --data data/processed/dataset.yaml
 ```
 
+> `predict.py`와 `validate.py`에서는 CLI 인자를 우선 적용하며, 지정되지 않은 `--weights`/`--output` 경로는 config의 `output.project/output.name` 기반으로 자동 조합됩니다.
+
 ---
 
 ## 브랜치 전략

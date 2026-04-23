@@ -128,19 +128,50 @@ class Classifier:
         label_smoothing = float(train_cfg.get("label_smoothing", 0.1))
         weight_decay = float(train_cfg.get("weight_decay", 0.01))
 
-        optimizer = torch.optim.AdamW(
-            self.model.parameters(), lr=lr0, weight_decay=weight_decay
-        )
-        warmup_sched = torch.optim.lr_scheduler.LinearLR(
-            optimizer, start_factor=0.1, end_factor=1.0, total_iters=max(warmup_epochs, 1)
-        )
-        cosine_sched = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=max(epochs - warmup_epochs, 1), eta_min=lr0 * lrf
-        )
-        scheduler = torch.optim.lr_scheduler.SequentialLR(
-            optimizer, schedulers=[warmup_sched, cosine_sched], milestones=[warmup_epochs]
-        )
-        criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
+        # Config 기반 optimizer 생성
+        optimizer_name = train_cfg.get("optimizer", "AdamW")
+        if optimizer_name == "AdamW":
+            optimizer = torch.optim.AdamW(
+                self.model.parameters(), lr=lr0, weight_decay=weight_decay
+            )
+        elif optimizer_name == "Adam":
+            optimizer = torch.optim.Adam(
+                self.model.parameters(), lr=lr0, weight_decay=weight_decay
+            )
+        elif optimizer_name == "SGD":
+            momentum = float(train_cfg.get("momentum", 0.9))
+            optimizer = torch.optim.SGD(
+                self.model.parameters(), lr=lr0, momentum=momentum, weight_decay=weight_decay
+            )
+        else:
+            raise ValueError(f"Unsupported optimizer: {optimizer_name}. Supported: AdamW, Adam, SGD")
+
+        # Config 기반 scheduler 생성 (기본: cosine with warmup)
+        scheduler_name = train_cfg.get("scheduler", "cosine")
+        if scheduler_name == "cosine":
+            warmup_sched = torch.optim.lr_scheduler.LinearLR(
+                optimizer, start_factor=0.1, end_factor=1.0, total_iters=max(warmup_epochs, 1)
+            )
+            cosine_sched = torch.optim.lr_scheduler.CosineAnnealingLR(
+                optimizer, T_max=max(epochs - warmup_epochs, 1), eta_min=lr0 * lrf
+            )
+            scheduler = torch.optim.lr_scheduler.SequentialLR(
+                optimizer, schedulers=[warmup_sched, cosine_sched], milestones=[warmup_epochs]
+            )
+        else:
+            raise ValueError(f"Unsupported scheduler: {scheduler_name}. Supported: cosine")
+        # Config 기반 criterion 생성
+        criterion_name = train_cfg.get("criterion", "cross_entropy")
+        if criterion_name == "cross_entropy":
+            criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
+        elif criterion_name == "bce":
+            criterion = nn.BCEWithLogitsLoss()
+        elif criterion_name == "focal":
+            alpha = float(train_cfg.get("focal_alpha", 0.25))
+            gamma = float(train_cfg.get("focal_gamma", 2.0))
+            criterion = FocalLoss(alpha=alpha, gamma=gamma, label_smoothing=label_smoothing)
+        else:
+            raise ValueError(f"Unsupported criterion: {criterion_name}. Supported: cross_entropy, bce, focal")
 
         out_cfg = self.cfg["output"]
         weights_dir = Path(out_cfg["project"]) / out_cfg["name"] / "weights"
@@ -342,3 +373,20 @@ def _resolve_device(device: str | None) -> str:
     if str(device).isdigit():
         return f"cuda:{device}"
     return device
+
+
+class FocalLoss(nn.Module):
+    """Focal Loss for classification."""
+
+    def __init__(self, alpha: float = 0.25, gamma: float = 2.0, label_smoothing: float = 0.0):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.label_smoothing = label_smoothing
+        self.ce_loss = nn.CrossEntropyLoss(label_smoothing=label_smoothing, reduction='none')
+
+    def forward(self, inputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        ce_loss = self.ce_loss(inputs, targets)
+        pt = torch.exp(-ce_loss)
+        focal_loss = self.alpha * (1 - pt) ** self.gamma * ce_loss
+        return focal_loss.mean()
