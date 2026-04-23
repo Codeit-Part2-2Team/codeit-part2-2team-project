@@ -93,3 +93,9 @@ data/
 | v1.0 | yolo_dataset_v1.zip | [다운로드](https://drive.google.com/file/d/1XzoLXnHHJRP0oR05xeGvsyx1SdgWcWH9/view?usp=drive_link) | 2026-04-22 | raw + external 통합, 단일 클래스 pill, nc=1 |
 
 > 호정님 자동화 프로그램 완성 후 버전 테이블 자동 관리로 전환 예정
+
+## Stage별 진행 가능 조건
+
+- Stage 1은 클래스 수 확정과 무관하게 단일 클래스 pill 기준으로 즉시 진행 가능하다
+- Stage 2는 클래스 매핑 확정 이후 최종 학습 기준을 고정한다
+- 클래스 매핑 완료 전까지 Stage 2 학습 시작 금지
