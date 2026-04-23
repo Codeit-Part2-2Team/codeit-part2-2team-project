@@ -211,6 +211,7 @@ python scripts/pipeline/run.py \
 | `--output` | ✅ | — | submission.csv 저장 경로 |
 | `--stage1-weights` | | 자동 조합 | Stage 1 가중치 경로 |
 | `--stage2-weights` | | 자동 조합 | Stage 2 가중치 경로 |
+| `--crop-output` | | `data/processed/crops/inference` | Stage 1 크롭 이미지 저장 디렉터리 |
 | `--padding` | | `0.05` | crop padding 비율 |
 
 ---
@@ -226,13 +227,18 @@ python scripts/pipeline/run.py \
   {
     "image_id": "test_0001",
     "detections": [
-      {"bbox": [120.0, 45.0, 380.0, 210.0], "score": 0.91}
+      {
+        "class_id": 0,
+        "class_name": "pill",
+        "bbox": [120.0, 45.0, 380.0, 210.0],
+        "score": 0.91
+      }
     ]
   }
 ]
 ```
 
-Stage 1이 pill 단일 클래스로 동작하므로 `class_id` / `class_name` 없음.
+Stage 1은 단일 클래스 탐지기이므로 `class_id`와 `class_name`은 기본적으로 하나의 pill 클래스를 의미합니다.
 
 ### crops_manifest.json
 
