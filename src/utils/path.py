@@ -5,8 +5,17 @@ from __future__ import annotations
 from pathlib import Path
 
 
+def find_project_root(marker: str = "requirements.txt") -> Path:
+    """현재 파일 위치에서 위로 올라가며 marker 파일이 있는 디렉터리를 반환한다."""
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        if (parent / marker).exists():
+            return parent
+    raise FileNotFoundError(f"프로젝트 루트를 찾을 수 없습니다 (marker: {marker})")
+
+
 # 프로젝트 루트 (Main/ 디렉터리)
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = find_project_root()
 
 
 def resolve_project_path(path: str | Path) -> Path:
