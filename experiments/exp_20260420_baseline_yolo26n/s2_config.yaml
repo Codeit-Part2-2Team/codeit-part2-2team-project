@@ -1,0 +1,55 @@
+seed: 42
+stage: 2
+task: classification
+classes: []
+nc: 319
+
+model:
+  name: resnet50
+  pretrained: true
+  num_classes: 319
+
+data:
+  train: data/processed/crops/train/
+  val: data/processed/crops/val/
+  imgsz: 224
+  workers: 8
+  version: "v1.0"
+  description: "Stage 2 분류기용 bbox 크롭 이미지"
+
+train:
+  epochs: 30
+  batch: 32
+  optimizer: AdamW
+  lr0: 0.001
+  lrf: 0.01
+  weight_decay: 0.01
+  warmup_epochs: 3
+  label_smoothing: 0.1
+  device: ""
+
+albumentations:
+  brightness_contrast:
+    p: 0.5
+    brightness_limit: 0.15
+    contrast_limit: 0.15
+  jpeg_compression:
+    p: 0.3
+    quality_lower: 85
+    quality_upper: 100
+  gaussian_blur:
+    p: 0.2
+    blur_limit: [3, 5]
+  bbox_jitter:
+    p: 0.5
+    shift_limit: 0.03
+    scale_limit: 0.05
+    rotate_limit: 5
+
+val:
+  top_k: [1, 5]
+
+output:
+  project: experiments/exp_20260420_baseline_yolo26n
+  name: stage2
+  save_period: -1
