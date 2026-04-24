@@ -24,14 +24,14 @@
 
 ## 데이터셋 배포 프로세스
 
-### 업로더 (DE - 소원)
+### 업로더 (DE 소원)
 1. 데이터셋 압축 대상 경로 지정
 2. zip 압축 진행
 3. 구글 드라이브에서 기존 버전 테이블 다운로드
 4. 버전 정보 기입 후 버전 테이블 업로드
 5. zip 파일 업로드
 
-### 다운로더 (EL - 도혁)
+### 다운로더 (EL 도혁)
 1. 실험 전 버전 테이블 다운로드
 2. 대상 버전 정보를 config.yaml에 반영
 3. config.yaml 갱신 완료
@@ -62,15 +62,17 @@ data:
 
 ## 현재 데이터셋 구조
 
+```
 data/
 ├── raw/          # 원본 데이터 (56클래스, 수정 금지)
 ├── external/     # 외부 데이터 (371클래스)
 └── processed/
-└── dataset_v1.0/   # Freeze 완료 데이터셋
-├── train/
-├── val/
-├── test/
-└── dataset.yaml
+    └── dataset_v1.0/   # Freeze 완료 데이터셋
+        ├── train/
+        ├── val/
+        ├── test/
+        └── dataset.yaml
+```
 
 ## Stage별 데이터 사용 기준
 
@@ -88,14 +90,14 @@ data/
 ## 데이터셋 다운로드 링크
 
 > 호정님 자동화 프로그램으로 관리되는 구글 드라이브 공유 폴더입니다.
-> 공유 URL은 보안상 디코 채널에서 EL(도혁)에게 문의하세요.
+> 공유 URL은 보안상 디코 채널에서 EL (도혁)에게 문의하세요.
 
 | 버전 | 파일명 | 업로드일 | 비고 |
 |------|--------|---------|------|
 | v1.0 | yolo_dataset_v1.zip | 2026-04-22 | raw + external 통합, 단일 클래스 pill, nc=1 |
 | v1.1 | yolo_dataset_v1.1.zip | 2026-04-24 | Stage 1용 수정본 |
 
->  최신 버전 다운로드 코드는 gdrive_downloader.ipynb 참고 (notebooks/ 폴더)
+>  최신 버전 다운로드 코드는 gdrive_downloader.ipynb 참고 (tools/GDriveAutoShare/ 폴더)
 
 ## Stage별 진행 가능 조건
 
