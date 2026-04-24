@@ -12,7 +12,7 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(next(p for p in Path(__file__).resolve().parents if (p / "requirements.txt").exists())))
 
 from src.models.model_yolo import YOLOModel
 from src.models.predictor import Predictor

@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(next(p for p in Path(__file__).resolve().parents if (p / "requirements.txt").exists())))
 
 from torch.utils.data import DataLoader
 
@@ -41,6 +44,7 @@ def main() -> None:
     val_loader = DataLoader(val_ds, batch_size=batch, shuffle=False, num_workers=workers)
 
     classifier = Classifier(cfg)
+    classifier.class_names = train_ds.classes
     metrics = classifier.fit(train_loader, val_loader)
     print(f"학습 완료: top1={metrics['top1_acc']:.4f}, top5={metrics['top5_acc']:.4f}")
 
