@@ -56,9 +56,14 @@ def main() -> None:
         val_ds, batch_size=batch, shuffle=False, num_workers=workers
     )
 
-    # 실제 클래스 수로 모델 빌드 (config 값 덮어쓰기)
-    cfg["model"]["num_classes"] = len(train_ds.classes)
-    cfg["nc"] = len(train_ds.classes)
+    actual_nc = len(train_ds.classes)
+    cfg_nc = cfg["model"]["num_classes"]
+    if cfg_nc != actual_nc:
+        raise ValueError(
+            f"config model.num_classes={cfg_nc}이지만 "
+            f"실제 데이터셋 클래스 수는 {actual_nc}개입니다. "
+            f"config를 num_classes: {actual_nc}로 수정하세요."
+        )
 
     classifier = Classifier(cfg)
     classifier.class_names = train_ds.classes

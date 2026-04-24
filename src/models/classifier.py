@@ -82,11 +82,14 @@ class Classifier:
         train_ds = Stage2Dataset(train_dir, cfg, split="train")
         val_ds = Stage2Dataset(val_dir, cfg, split="val")
 
-        # 실제 클래스 수로 모델 재빌드
         actual_nc = len(train_ds.classes)
-        self.cfg["model"]["num_classes"] = actual_nc
-        self.cfg["nc"] = actual_nc
-        self.model = self._build_model().to(self.device)
+        cfg_nc = self.cfg["model"]["num_classes"]
+        if cfg_nc != actual_nc:
+            raise ValueError(
+                f"config model.num_classes={cfg_nc}이지만 "
+                f"실제 데이터셋 클래스 수는 {actual_nc}개입니다. "
+                f"config를 num_classes: {actual_nc}로 수정하세요."
+            )
         self.class_names = train_ds.classes
 
         train_loader = DataLoader(
@@ -341,7 +344,7 @@ class Classifier:
             "epoch": epoch,
             "model_state_dict": self.model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
-            "top1_acc": metrics.get("top1_acc", 0.0),
+            "metrics": metrics,
             "class_names": self.class_names,
             "cfg": self.cfg,
         }
