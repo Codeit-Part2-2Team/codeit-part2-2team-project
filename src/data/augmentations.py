@@ -102,11 +102,10 @@ def _build_bbox_params(albumentations, params: dict | None):
         raise ValueError(f"bbox 설정에 지원하지 않는 파라미터가 있습니다: {sorted(params)}")
 
     return albumentations.BboxParams(
-        coord_format=bbox_format,
+        format=bbox_format,
         label_fields=label_fields,
         min_visibility=min_visibility,
-        clip_bboxes_on_input=clip,
-        clip_after_transform=clip,
+        clip=clip,
     )
 
 

@@ -74,7 +74,7 @@ class Trainer:
             "conf": cfg["val"]["conf"],
             "iou": cfg["val"]["iou"],
             "max_det": cfg["val"]["max_det"],
-            "project": cfg["output"]["project"],
+            "project": str(Path(cfg["output"]["project"]).resolve()),
             "name": cfg["output"]["name"],
             "save_period": cfg["output"].get("save_period", -1),
             "seed": cfg.get("seed", 42),
