@@ -12,12 +12,14 @@ CLI 실행 스크립트입니다. **프로젝트 루트**에서 실행하세요.
 | `predict.py` | 저장된 가중치로 이미지 추론 → predictions.json 저장 | 승준 |
 | `validate.py` | 저장된 가중치로 val set 평가 → mAP 출력 | 승준 |
 | `make_submission.py` | predictions.json → Kaggle 제출용 submission.csv 변환 | 도혁 |
-| `convert_annotations.py` | raw/external 어노테이션을 YOLO 라벨로 변환 | 소원 |
+| `convert_annotations.py` | src/data 모듈을 이용해 raw/external 어노테이션을 YOLO 라벨로 변환 | 소원 |
+
 
 ### Stage 2 — 분류기 파이프라인
 
 | 스크립트 | 역할 |
 |----------|------|
+| `build_classification_dataset.py` | src/data 모듈을 이용해 raw/external crop 생성 및 분류 데이터셋(train/val/test) 생성 |
 | `pipeline/crop.py` | 알약 1개 단위 크롭 생성. **gt 모드**: GT label → flat 크롭 + manifest (학습용, 최초 1회). **inference 모드**: Stage 1 predictions → flat 크롭 + manifest (추론용). **convert 모드**: 외부 제공 ImageFolder → manifest만 생성 (재크롭 없음) |
 | `pipeline/stage2_train.py` | GT 크롭으로 분류기 학습 → 가중치 저장 |
 | `pipeline/stage2_predict.py` | 크롭 이미지 분류 → stage2_predictions.json 저장 |
@@ -132,7 +134,7 @@ python scripts/make_submission.py \
     --output submissions/submission.csv
 
 # 어노테이션 변환
-python scripts/convert_annotations.py \
+python -m scripts.convert_annotations --project-root .
     --project-root .
 ```
 
@@ -220,6 +222,23 @@ python scripts/pipeline/run_predict.py \
 | `--ext-output-dir`     |    | processed/ext_labels  | external 변환 txt 저장 경로 |
 | `--class-id`           |    | 0                     | 단일 클래스 id (pill)      |
 
+### build_classification_dataset.py
+
+| 인자 | 필수 | 기본값 | 설명 |
+|---|---|---|---|
+| `--final-class-table` | ✅ | — | 클래스 매핑 CSV |
+| `--raw-ann-root` | ✅ | — | raw annotation 폴더 |
+| `--raw-img-root` | ✅ | — | raw 이미지 폴더 |
+| `--external-root` | ✅ | — | external 데이터 루트 |
+| `--crop-root` | ✅ | — | 전체 crop 저장 경로 |
+| `--filtered-crop-root` | ✅ | — | 필터링 crop 저장 경로 |
+| `--cls-root` | ✅ | — | 최종 분류 데이터셋 저장 경로 |
+| `--keep-under10-file` |  | 없음 | 수동 유지 클래스 txt |
+| `--min-images` |  | 10 | 최소 유지 이미지 수 |
+| `--train-ratio` |  | 0.7 | train 비율 |
+| `--val-ratio` |  | 0.15 | val 비율 |
+| `--test-ratio` |  | 0.15 | test 비율 |
+| `--seed` |  | 42 | 랜덤 시드 |
 
 ### pipeline/crop.py
 
