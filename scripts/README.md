@@ -18,6 +18,7 @@ CLI 실행 스크립트입니다. **프로젝트 루트**에서 실행하세요.
 
 | 스크립트 | 역할 |
 |----------|------|
+| `build_classification_dataset.py` | raw/external crop 통합 후 분류 데이터셋(train/val/test) 생성 |
 | `pipeline/crop.py` | Stage 1 predictions.json + 원본 이미지 → 알약 1개 단위 크롭 이미지 저장 |
 | `pipeline/stage2_train.py` | 크롭 이미지로 분류기 학습 → 가중치 저장 |
 | `pipeline/stage2_predict.py` | 크롭 이미지 분류 → stage2_predictions.json 저장 |
@@ -187,6 +188,14 @@ python scripts/pipeline/run.py \
 | `--ext-output-dir`     |    | processed/ext_labels  | external 변환 txt 저장 경로 |
 | `--class-id`           |    | 0                     | 단일 클래스 id (pill)      |
 
+### build_classification_dataset.py
+
+| 인자 | 필수 | 기본값 | 설명 |
+|---|---|---|---|
+| `--final-class-table` | ✅ | — | 클래스 매핑 CSV |
+| `--crop-root` |  | config | crop 저장 경로 |
+| `--cls-root` |  | config | 최종 분류 데이터셋 저장 경로 |
+| `--min-images` |  | 10 | 최소 유지 이미지 수 |
 
 ### pipeline/crop.py
 
