@@ -23,7 +23,7 @@ class YOLOModel:
         self.model = YOLO(weights)
 
     def load_weights(self, path: str | Path) -> "YOLOModel":
-        self.model.load(str(path))
+        self.model = YOLO(str(path))
         return self
 
     def raw_predict(
