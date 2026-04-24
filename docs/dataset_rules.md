@@ -95,7 +95,7 @@ data/
 | v1.0 | yolo_dataset_v1.zip | 2026-04-22 | raw + external 통합, 단일 클래스 pill, nc=1 |
 | v1.1 | yolo_dataset_v1.1.zip | 2026-04-24 | Stage 1용 수정본 |
 
-> 최신 버전 다운로드 코드는 호정님이 별도 제공 예정
+>  최신 버전 다운로드 코드는 gdrive_downloader.ipynb 참고 (notebooks/ 폴더)
 
 ## Stage별 진행 가능 조건
 
