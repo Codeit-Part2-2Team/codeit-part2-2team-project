@@ -3,7 +3,7 @@
 model:
   name: resnet50
   pretrained: true
-  num_classes: 319
+  num_classes: 371
 
 data:
   train: data/processed/crops/train/
@@ -53,4 +53,4 @@ output:
 stage: 2
 task: classification
 classes: []
-nc: 319
+nc: 371

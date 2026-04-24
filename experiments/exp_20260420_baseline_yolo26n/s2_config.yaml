@@ -2,12 +2,12 @@ seed: 42
 stage: 2
 task: classification
 classes: []
-nc: 319
+nc: 371
 
 model:
   name: resnet50
   pretrained: true
-  num_classes: 319
+  num_classes: 371
 
 data:
   train: experiments/exp_20260420_baseline_yolo26n/stage1_crops
