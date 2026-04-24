@@ -10,7 +10,7 @@
 
 ### 1단계: 노트북 열기
 ```bash
-cd /home/n132/Projects/Project1/Main
+cd /path/to/project
 jupyter notebook notebooks/04_pipeline_tutorial.ipynb
 ```
 
