@@ -62,15 +62,17 @@ data:
 
 ## 현재 데이터셋 구조
 
+```
 data/
 ├── raw/          # 원본 데이터 (56클래스, 수정 금지)
 ├── external/     # 외부 데이터 (371클래스)
 └── processed/
-└── dataset_v1.0/   # Freeze 완료 데이터셋
-├── train/
-├── val/
-├── test/
-└── dataset.yaml
+    └── dataset_v1.0/   # Freeze 완료 데이터셋
+        ├── train/
+        ├── val/
+        ├── test/
+        └── dataset.yaml
+```
 
 ## Stage별 데이터 사용 기준
 
