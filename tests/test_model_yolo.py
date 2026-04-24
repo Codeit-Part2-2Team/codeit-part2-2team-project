@@ -47,13 +47,18 @@ def test_init_with_yaml_file(mock_yolo, sample_config, tmp_path):
 
 @patch("src.models.model_yolo.YOLO")
 def test_load_weights_returns_self(mock_yolo, sample_config):
-    """load_weights()가 self를 반환해 체이닝이 가능하다."""
     from src.models.model_yolo import YOLOModel
 
     model = YOLOModel(sample_config)
     result = model.load_weights("experiments/best.pt")
 
-    mock_yolo.return_value.load.assert_called_once_with("experiments/best.pt")
+    # 특정 호출이 있었는지만 확인
+    mock_yolo.assert_any_call("experiments/best.pt")
+
+    # 내부 상태 확인
+    assert model.model == mock_yolo.return_value
+
+    # 체이닝
     assert result is model
 
 
