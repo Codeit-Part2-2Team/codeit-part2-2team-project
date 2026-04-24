@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from scripts.pipeline.run import (
+from scripts.pipeline.run_predict import (
     merge_predictions,
 )
 from src.utils.path import (

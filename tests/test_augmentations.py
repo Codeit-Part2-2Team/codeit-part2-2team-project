@@ -79,9 +79,8 @@ def test_build_stage1_transforms_includes_bbox_params(fake_albumentations):
     assert len(compose.transforms) == 2
     assert compose.transforms[0].__class__.__name__ == "HorizontalFlip"
     assert compose.transforms[1].__class__.__name__ == "RandomBrightnessContrast"
-    assert compose.bbox_params.kwargs["coord_format"] == "yolo"
-    assert compose.bbox_params.kwargs["clip_bboxes_on_input"] is True
-    assert compose.bbox_params.kwargs["clip_after_transform"] is True
+    assert compose.bbox_params.kwargs["format"] == "yolo"
+    assert compose.bbox_params.kwargs["clip"] is True
 
 
 def test_build_stage2_transforms_for_train_uses_flat_blocks(fake_albumentations):
