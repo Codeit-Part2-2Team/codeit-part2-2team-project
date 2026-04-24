@@ -41,6 +41,51 @@ def sample_config() -> dict:
 
 
 @pytest.fixture
+def sample_stage2_config() -> dict:
+    """테스트용 최소 Stage 2 config 딕셔너리."""
+    return {
+        "seed": 42,
+        "stage": 2,
+        "task": "classification",
+        "classes": ["class_a", "class_b", "class_c"],
+        "model": {
+            "name": "efficientnetv2_s",
+            "pretrained": False,
+            "num_classes": 3,
+        },
+        "data": {
+            "train": "data/processed/crops/train",
+            "val": "data/processed/crops/val",
+            "imgsz": 224,
+            "workers": 2,
+        },
+        "train": {
+            "epochs": 3,
+            "batch": 8,
+            "optimizer": "AdamW",
+            "lr0": 0.001,
+            "lrf": 0.01,
+            "weight_decay": 0.0005,
+            "warmup_epochs": 1,
+            "device": "cpu",
+        },
+        "val": {"top_k": [1, 3]},
+        "output": {
+            "project": "experiments/stage2_classifier",
+            "name": "test_stage2",
+            "save_period": -1,
+        },
+        "albumentations": {
+            "brightness_contrast": {
+                "p": 0.5,
+                "brightness_limit": 0.15,
+                "contrast_limit": 0.15,
+            }
+        },
+    }
+
+
+@pytest.fixture
 def sample_predictions() -> list[dict]:
     """테스트용 predictions.json 데이터."""
     return [

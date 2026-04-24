@@ -353,6 +353,8 @@ train:
   lrf: 0.01
   weight_decay: 0.01
   warmup_epochs: 3
+  scheduler: cosine
+  criterion: cross_entropy
   label_smoothing: 0.1
   device: ""
 
@@ -408,11 +410,15 @@ output:
 |------|------|------|
 | `epochs` | ✅ | 최대 학습 에포크 수 |
 | `batch` | ✅ | 미니배치 크기 |
-| `optimizer` | ✅ | 옵티마이저 종류 |
+| `optimizer` | ✅ | 옵티마이저 종류 (`AdamW`, `Adam`, `SGD`) |
 | `lr0` | ✅ | 초기 학습률 |
 | `lrf` | ✅ | 최종 학습률 비율 |
 | `weight_decay` | ✅ | L2 정규화 강도 |
 | `warmup_epochs` | ✅ | 워밍업 에포크 수 |
+| `scheduler` | | LR 스케줄러 종류 (`cosine` 기본) |
+| `criterion` | | Loss 함수 종류 (`cross_entropy` 기본, `bce`, `focal` 지원) |
+| `focal_alpha` | | Focal Loss alpha (기본 0.25) |
+| `focal_gamma` | | Focal Loss gamma (기본 2.0) |
 | `label_smoothing` | ✅ | label smoothing 강도 |
 | `device` | ✅ | 실행 장치 |
 

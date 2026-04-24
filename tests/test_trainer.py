@@ -9,6 +9,7 @@ from src.training.trainer import Trainer
 
 SEED = 42
 
+
 def _make_model(sample_config):
     model = MagicMock()
     model.cfg = sample_config
@@ -25,7 +26,16 @@ def test_build_train_kwargs_contains_required_keys(sample_config):
     trainer = Trainer(_make_model(sample_config))
     kwargs = trainer._build_train_kwargs("data/processed/dataset.yaml", resume=False)
 
-    for key in ("data", "imgsz", "workers", "epochs", "batch", "seed", "exist_ok", "resume"):
+    for key in (
+        "data",
+        "imgsz",
+        "workers",
+        "epochs",
+        "batch",
+        "seed",
+        "exist_ok",
+        "resume",
+    ):
         assert key in kwargs, f"'{key}' 키가 없습니다"
 
 
@@ -53,6 +63,70 @@ def test_build_train_kwargs_resume_flag(sample_config):
     trainer = Trainer(_make_model(sample_config))
     assert trainer._build_train_kwargs("x.yaml", resume=True)["resume"] is True
     assert trainer._build_train_kwargs("x.yaml", resume=False)["resume"] is False
+
+
+def test_train_registers_albumentations_callback_when_configured(
+    sample_config, monkeypatch
+):
+    """albumentations 섹션이 있으면 on_train_start 콜백이 등록된다."""
+    sample_config["albumentations"] = {"horizontal_flip": {"p": 0.5}}
+    model = _make_model(sample_config)
+    model.model = MagicMock()
+    model.raw_train.return_value.results_dict = {}
+    monkeypatch.setattr(
+        "src.data.augmentations.build_stage1_transforms",
+        MagicMock(return_value=MagicMock()),
+        raising=False,
+    )
+
+    Trainer(model).train("x.yaml")
+
+    model.model.add_callback.assert_called_once()
+    assert model.model.add_callback.call_args[0][0] == "on_train_start"
+
+
+def test_train_no_callback_without_albumentations(sample_config):
+    """albumentations 섹션이 없으면 콜백이 등록되지 않는다."""
+    model = _make_model(sample_config)
+    model.model = MagicMock()
+    model.raw_train.return_value.results_dict = {}
+
+    Trainer(model).train("x.yaml")
+
+    model.model.add_callback.assert_not_called()
+
+
+def test_build_train_kwargs_albumentations_override(sample_config):
+    """albumentations 섹션이 있으면 YOLO 중복 augment 항목이 0.0으로 덮어씌워진다."""
+    sample_config["albumentations"] = {"horizontal_flip": {"p": 0.5}}
+    sample_config["augment"]["fliplr"] = 0.5
+    sample_config["augment"]["hsv_h"] = 0.015
+    trainer = Trainer(_make_model(sample_config))
+    kwargs = trainer._build_train_kwargs("x.yaml", resume=False)
+
+    for key in (
+        "fliplr",
+        "flipud",
+        "hsv_h",
+        "hsv_s",
+        "hsv_v",
+        "degrees",
+        "translate",
+        "scale",
+        "shear",
+    ):
+        assert kwargs[key] == 0.0, f"{key}가 0.0이어야 합니다"
+
+
+def test_build_train_kwargs_no_albumentations_keeps_augment_values(sample_config):
+    """albumentations 섹션이 없으면 augment 원래 값이 유지된다."""
+    sample_config["augment"]["fliplr"] = 0.5
+    sample_config["augment"]["hsv_h"] = 0.015
+    trainer = Trainer(_make_model(sample_config))
+    kwargs = trainer._build_train_kwargs("x.yaml", resume=False)
+
+    assert kwargs["fliplr"] == 0.5
+    assert kwargs["hsv_h"] == 0.015
 
 
 # ---------------------------------------------------------------------------

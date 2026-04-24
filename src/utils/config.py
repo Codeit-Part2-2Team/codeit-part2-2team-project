@@ -7,7 +7,8 @@ import numpy as np
 import torch
 import yaml
 
-_REQUIRED_KEYS = {"model", "data", "train", "augment", "val", "output"}
+_COMMON_REQUIRED = {"model", "data", "train", "val", "output"}
+_STAGE1_REQUIRED = _COMMON_REQUIRED | {"augment"}
 
 
 def load_config(path: str | Path) -> dict:
@@ -18,7 +19,8 @@ def load_config(path: str | Path) -> dict:
 
 def validate_config(cfg: dict) -> None:
     """필수 키 존재 여부를 검증한다. 누락 시 ValueError."""
-    missing = _REQUIRED_KEYS - cfg.keys()
+    required = _STAGE1_REQUIRED if cfg.get("stage", 1) == 1 else _COMMON_REQUIRED
+    missing = required - cfg.keys()
     if missing:
         raise ValueError(f"config에 필수 키가 없습니다: {sorted(missing)}")
 
