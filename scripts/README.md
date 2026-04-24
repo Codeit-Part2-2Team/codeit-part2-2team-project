@@ -18,11 +18,11 @@ CLI 실행 스크립트입니다. **프로젝트 루트**에서 실행하세요.
 
 | 스크립트 | 역할 |
 |----------|------|
-| `pipeline/crop.py` | Stage 1 predictions.json + 원본 이미지 → 알약 1개 단위 크롭 이미지 저장 |
-| `pipeline/stage2_train.py` | 크롭 이미지로 분류기 학습 → 가중치 저장 |
+| `pipeline/crop.py` | 알약 1개 단위 크롭 생성. **gt 모드**: GT label → flat 크롭 + manifest (학습용, 최초 1회). **inference 모드**: Stage 1 predictions → flat 크롭 + manifest (추론용). **convert 모드**: 외부 제공 ImageFolder → manifest만 생성 (재크롭 없음) |
+| `pipeline/stage2_train.py` | GT 크롭으로 분류기 학습 → 가중치 저장 |
 | `pipeline/stage2_predict.py` | 크롭 이미지 분류 → stage2_predictions.json 저장 |
 | `pipeline/run_train.py` | Stage 1 학습 → Stage 2 학습 통합 실행 |
-| `pipeline/run_predict.py` | Stage 1 추론 → 크롭 → Stage 2 추론 → submission.csv 통합 실행 |
+| `pipeline/run_predict.py` | Stage 1 추론 → 크롭(inference 모드 자동) → Stage 2 추론 → submission.csv 통합 실행 |
 
 ---
 
@@ -53,31 +53,53 @@ data/raw/train/   experiments/.../config.yaml
 ```
 ── 학습 ──────────────────────────────────────────────────────
 
-  Stage 1 학습:  train.py  →  stage1/weights/best.pt
+  1. Stage 1 학습
+     data/processed/dataset.yaml
+         │
+         ▼
+     [ train.py ]
+         │
+         ▼
+     stage1/weights/best.pt
 
-  Stage 2 학습:  (GT bbox 기준 크롭 준비)
-                    └→  stage2_train.py  →  stage2/weights/best.pt
+  2. GT 크롭 생성 (최초 1회, 이후 재사용)
+     data/processed/labels/{train,val}/
+     data/processed/images/{train,val}/
+         │
+         ▼
+     [ pipeline/crop.py --labels ... --images ... ]  gt 모드
+         │
+         ▼
+     data/processed/crops/{train,val}/
+       *.jpg + crops_manifest.json  (class_name 포함)
 
-── 추론 ──────────────────────────────────────────────────────
+  3. Stage 2 학습
+     data/processed/crops/{train,val}/
+         │
+         ▼
+     [ pipeline/stage2_train.py ]
+         │
+         ▼
+     stage2/weights/best.pt
+
+── 추론 (run_predict.py 로 한 번에) ─────────────────────────
 
   data/raw/test/
       │
       ▼
-  [ predict.py ]            Stage 1 추론
+  [ predict.py ]                  Stage 1 추론
       │  predictions.json
       ▼
-  [ pipeline/crop.py ]      bbox 기준 알약 1개 단위 크롭
-      │  crops/ + crops_manifest.json
+  [ pipeline/crop.py ]            inference 모드 (자동 호출)
+      │  crops/inference/ + crops_manifest.json  (score 포함)
       ▼
-  [ pipeline/stage2_predict.py ]   브랜드명 분류
+  [ pipeline/stage2_predict.py ]  브랜드명 분류
       │  stage2_predictions.json
       ▼
-  [ make_submission.py ]    Stage 1 bbox + Stage 2 class 병합
+  [ make_submission.py ]          bbox + class 병합
       │
       ▼
   submissions/submission.csv
-
-  ※ pipeline/run_predict.py 로 위 추론 단계를 한 번에 실행 가능
 ```
 
 `validate.py`는 파이프라인과 별도로, 학습 완료 후 val set 성능을 확인할 때 독립적으로 사용합니다.
@@ -117,32 +139,31 @@ python scripts/convert_annotations.py \
 ### Stage 2 파이프라인
 
 ```bash
-# 크롭 생성
+# [최초 1회] GT 크롭 생성 (학습용) — 원본 이미지에서 직접 크롭
 python scripts/pipeline/crop.py \
-    --predictions experiments/stage1_detection/results/predictions.json \
-    --source      data/raw/test/ \
-    --output      data/processed/crops/inference/
+    --labels  data/processed/labels \
+    --images  data/processed/images \
+    --output  data/processed/crops \
+    --splits  train val
+
+# [대안] 외부 제공 ImageFolder 크롭이 이미 있을 때 manifest만 생성
+python scripts/pipeline/crop.py \
+    --imagefolder data/processed/crops \
+    --splits      train val
 
 # Stage 2 학습
 python scripts/pipeline/stage2_train.py \
-    --config experiments/stage2_classifier/exp_A/config.yaml
+    --config experiments/stage2_classifier/config.yaml
 
-# Stage 2 추론
+# Stage 2 추론 (크롭이 이미 있는 경우 단독 실행)
 python scripts/pipeline/stage2_predict.py \
-    --config  experiments/stage2_classifier/exp_A/config.yaml \
+    --config  experiments/stage2_classifier/config.yaml \
     --source  data/processed/crops/inference/
-
-# 통합 학습 (Stage 1 → Stage 2)
-python scripts/pipeline/run_train.py \
-    --stage1-config experiments/exp_20260420_baseline_yolo26n/s1_config.yaml \
-    --stage2-config experiments/exp_20260420_baseline_yolo26n/s2_config.yaml \
-    --data          data/processed/dataset.yaml \
-    --crops         data/processed/crops/
 
 # 통합 추론 (Stage 1 추론 → 크롭 → Stage 2 추론 → submission.csv)
 python scripts/pipeline/run_predict.py \
     --stage1-config experiments/exp_20260420_baseline_yolo26n/s1_config.yaml \
-    --stage2-config experiments/exp_20260420_baseline_yolo26n/s2_config.yaml \
+    --stage2-config experiments/stage2_classifier/config.yaml \
     --source        data/raw/test/ \
     --output        submissions/submission.csv
 ```
@@ -202,12 +223,44 @@ python scripts/pipeline/run_predict.py \
 
 ### pipeline/crop.py
 
+세 모드 중 하나를 선택해 실행한다.
+
+**inference 모드** (`--predictions` 지정 시)
+
 | 인자 | 필수 | 기본값 | 설명 |
 |------|------|--------|------|
 | `--predictions` | ✅ | — | Stage 1 predictions.json 경로 |
 | `--source` | ✅ | — | 원본 이미지 디렉터리 |
-| `--output` | ✅ | — | 크롭 이미지 저장 디렉터리 |
+| `--output` | ✅ | — | 크롭 저장 디렉터리 |
 | `--padding` | | `0.05` | bbox 여백 비율 |
+
+출력: `{output}/*.jpg` + `{output}/crops_manifest.json` (`score` 포함, `class_name` 없음)
+
+**gt 모드** (`--labels` 지정 시)
+
+| 인자 | 필수 | 기본값 | 설명 |
+|------|------|--------|------|
+| `--labels` | ✅ | — | YOLO label 루트 (`labels/train/`, `labels/val/`) |
+| `--images` | ✅ | — | 원본 이미지 루트 (`images/train/`, `images/val/`) |
+| `--output` | ✅ | — | 크롭 저장 루트 디렉터리 |
+| `--splits` | | `train val` | 처리할 split 목록 |
+| `--padding` | | `0.05` | bbox 여백 비율 |
+
+출력: `{output}/{split}/*.jpg` + `{output}/{split}/crops_manifest.json` (`class_name` 포함, `score` 없음)  
+클래스명은 파일명에서 자동 탐지한다.
+
+**convert 모드** (`--imagefolder` 지정 시)
+
+외부에서 제공받은 크롭이 ImageFolder 구조(`class_name/img.jpg`)로 있고 `crops_manifest.json`이 없을 때 사용한다.  
+이미지를 재크롭하지 않고 manifest만 생성한다. 클래스명은 서브디렉터리명을 그대로 사용한다.
+
+| 인자 | 필수 | 기본값 | 설명 |
+|------|------|--------|------|
+| `--imagefolder` | ✅ | — | ImageFolder 루트 디렉터리 |
+| `--splits` | | `train val` | 처리할 split 목록 |
+
+출력: `{imagefolder}/{split}/crops_manifest.json` (`class_name` 포함)  
+`crops_manifest.json`이 이미 존재하는 split은 자동으로 스킵한다.
 
 ### pipeline/stage2_train.py
 
@@ -276,7 +329,9 @@ Stage 1은 단일 클래스 탐지기이므로 `class_id`와 `class_name`은 기
 
 ### crops_manifest.json
 
-`crop.py` 출력 / `stage2_predict.py` 입력. Stage 1 bbox 역추적에 사용.
+`crop.py` 출력. 모드에 따라 포함 필드가 다르다.
+
+**inference 모드** — `stage2_predict.py` 입력 / Stage 1 bbox 역추적에 사용
 
 ```json
 [
@@ -286,6 +341,20 @@ Stage 1은 단일 클래스 탐지기이므로 `class_id`와 `class_name`은 기
     "crop_path": "data/processed/crops/inference/test_0001_0.jpg",
     "bbox":      [120.0, 45.0, 380.0, 210.0],
     "score":     0.91
+  }
+]
+```
+
+**gt 모드** — `stage2_train.py` (Stage2Dataset) 입력
+
+```json
+[
+  {
+    "image_id":   "Acetaminophen_500mg_jpg.rf.abc123",
+    "crop_id":    "Acetaminophen_500mg_jpg.rf.abc123_0000",
+    "crop_path":  "data/processed/crops/train/Acetaminophen_500mg_jpg.rf.abc123_0000.jpg",
+    "bbox":       [120.0, 45.0, 380.0, 210.0],
+    "class_name": "Acetaminophen_500mg"
   }
 ]
 ```
