@@ -64,7 +64,7 @@ data:
 
 data/
 ├── raw/          # 원본 데이터 (56클래스, 수정 금지)
-├── external/     # 외부 데이터 (319클래스)
+├── external/     # 외부 데이터 (371클래스)
 └── processed/
 └── dataset_v1.0/   # Freeze 완료 데이터셋
 ├── train/
