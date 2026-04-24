@@ -21,10 +21,10 @@
 # 아래 셀 [1]의 `FOLDER_URL`과 `API_KEY`를 입력한 뒤 전체 셀을 실행하세요.
 
 # %% [1] 설정 — 실행 전 반드시 입력
-FOLDER_URL = ""   # GDriveAutoShare 버전 기록 폴더 공유 URL
-                  # 예: "https://drive.google.com/drive/folders/1Abc...xyz?usp=sharing"
+FOLDER_URL = ""  # GDriveAutoShare 버전 기록 폴더 공유 URL
+# 예: "https://drive.google.com/drive/folders/1Abc...xyz?usp=sharing"
 
-API_KEY    = ""   # Drive API 접근 권한이 있는 Google Cloud API 키
+API_KEY = ""  # Drive API 접근 권한이 있는 Google Cloud API 키
 
 OUTPUT_DIR = "."  # 다운로드 저장 위치 (상대 경로 또는 절대 경로)
 
@@ -40,6 +40,7 @@ from tqdm import tqdm
 
 try:
     from tabulate import tabulate as _tabulate
+
     _HAS_TABULATE = True
 except ImportError:
     _HAS_TABULATE = False
@@ -47,6 +48,7 @@ except ImportError:
 _DRIVE_API = "https://www.googleapis.com/drive/v3"
 
 # %% [3] 함수 정의
+
 
 def extract_folder_id(url_or_id: str) -> str:
     """Drive 공유 URL 또는 폴더 ID 문자열에서 폴더 ID를 반환."""
@@ -75,7 +77,12 @@ def list_version_records(folder_id: str, api_key: str) -> list[dict]:
     files, page_token = [], None
 
     while True:
-        params = dict(q=q, fields="nextPageToken,files(id,name)", orderBy="createdTime", pageSize=1000)
+        params = dict(
+            q=q,
+            fields="nextPageToken,files(id,name)",
+            orderBy="createdTime",
+            pageSize=1000,
+        )
         if page_token:
             params["pageToken"] = page_token
         data = _get_json("files", api_key, **params)
@@ -198,9 +205,7 @@ def download_zip(record: dict, api_key: str, output_dir: str | Path = ".") -> Pa
 # %% [4] 버전 기록 불러오기
 
 if not FOLDER_URL or not API_KEY:
-    raise SystemExit(
-        "셀 [1]의 FOLDER_URL과 API_KEY를 입력한 뒤 다시 실행하세요."
-    )
+    raise SystemExit("셀 [1]의 FOLDER_URL과 API_KEY를 입력한 뒤 다시 실행하세요.")
 
 folder_id = extract_folder_id(FOLDER_URL)
 print(f"폴더 ID : {folder_id}")
@@ -209,7 +214,9 @@ print("버전 기록을 가져오는 중...\n")
 records = list_version_records(folder_id, API_KEY)
 
 if not records:
-    raise SystemExit("버전 기록을 찾을 수 없습니다. FOLDER_URL과 공유 권한을 확인하세요.")
+    raise SystemExit(
+        "버전 기록을 찾을 수 없습니다. FOLDER_URL과 공유 권한을 확인하세요."
+    )
 
 print(f"{len(records)}개 버전 발견:\n")
 print_version_table(records)

@@ -56,6 +56,15 @@ def main() -> None:
         val_ds, batch_size=batch, shuffle=False, num_workers=workers
     )
 
+    actual_nc = len(train_ds.classes)
+    cfg_nc = cfg["model"]["num_classes"]
+    if cfg_nc != actual_nc:
+        raise ValueError(
+            f"config model.num_classes={cfg_nc}이지만 "
+            f"실제 데이터셋 클래스 수는 {actual_nc}개입니다. "
+            f"config를 num_classes: {actual_nc}로 수정하세요."
+        )
+
     classifier = Classifier(cfg)
     classifier.class_names = train_ds.classes
     metrics = classifier.fit(train_loader, val_loader)
