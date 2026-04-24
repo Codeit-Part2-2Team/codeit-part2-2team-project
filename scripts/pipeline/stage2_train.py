@@ -6,7 +6,16 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(next(p for p in Path(__file__).resolve().parents if (p / "requirements.txt").exists())))
+sys.path.insert(
+    0,
+    str(
+        next(
+            p
+            for p in Path(__file__).resolve().parents
+            if (p / "requirements.txt").exists()
+        )
+    ),
+)
 
 from torch.utils.data import DataLoader
 
@@ -40,8 +49,12 @@ def main() -> None:
     train_ds = Stage2Dataset(train_dir, cfg, split="train")
     val_ds = Stage2Dataset(val_dir, cfg, split="val")
 
-    train_loader = DataLoader(train_ds, batch_size=batch, shuffle=True, num_workers=workers)
-    val_loader = DataLoader(val_ds, batch_size=batch, shuffle=False, num_workers=workers)
+    train_loader = DataLoader(
+        train_ds, batch_size=batch, shuffle=True, num_workers=workers
+    )
+    val_loader = DataLoader(
+        val_ds, batch_size=batch, shuffle=False, num_workers=workers
+    )
 
     classifier = Classifier(cfg)
     classifier.class_names = train_ds.classes

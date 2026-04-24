@@ -1,7 +1,5 @@
 """submission 유틸 단위 테스트."""
 
-from pathlib import Path
-
 import pandas as pd
 
 from src.utils.submission import predictions_to_df, save_submission

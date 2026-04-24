@@ -77,8 +77,12 @@ class Classifier:
         val_ds = Stage2Dataset(val_dir, cfg, split="val")
         self.class_names = train_ds.classes
 
-        train_loader = DataLoader(train_ds, batch_size=batch, shuffle=True, num_workers=workers)
-        val_loader = DataLoader(val_ds, batch_size=batch, shuffle=False, num_workers=workers)
+        train_loader = DataLoader(
+            train_ds, batch_size=batch, shuffle=True, num_workers=workers
+        )
+        val_loader = DataLoader(
+            val_ds, batch_size=batch, shuffle=False, num_workers=workers
+        )
         return self.fit(train_loader, val_loader)
 
     def predict(self, source: str | Path, output: str | Path) -> list[dict]:
@@ -141,25 +145,37 @@ class Classifier:
         elif optimizer_name == "SGD":
             momentum = float(train_cfg.get("momentum", 0.9))
             optimizer = torch.optim.SGD(
-                self.model.parameters(), lr=lr0, momentum=momentum, weight_decay=weight_decay
+                self.model.parameters(),
+                lr=lr0,
+                momentum=momentum,
+                weight_decay=weight_decay,
             )
         else:
-            raise ValueError(f"Unsupported optimizer: {optimizer_name}. Supported: AdamW, Adam, SGD")
+            raise ValueError(
+                f"Unsupported optimizer: {optimizer_name}. Supported: AdamW, Adam, SGD"
+            )
 
         # Config 기반 scheduler 생성 (기본: cosine with warmup)
         scheduler_name = train_cfg.get("scheduler", "cosine")
         if scheduler_name == "cosine":
             warmup_sched = torch.optim.lr_scheduler.LinearLR(
-                optimizer, start_factor=0.1, end_factor=1.0, total_iters=max(warmup_epochs, 1)
+                optimizer,
+                start_factor=0.1,
+                end_factor=1.0,
+                total_iters=max(warmup_epochs, 1),
             )
             cosine_sched = torch.optim.lr_scheduler.CosineAnnealingLR(
                 optimizer, T_max=max(epochs - warmup_epochs, 1), eta_min=lr0 * lrf
             )
             scheduler = torch.optim.lr_scheduler.SequentialLR(
-                optimizer, schedulers=[warmup_sched, cosine_sched], milestones=[warmup_epochs]
+                optimizer,
+                schedulers=[warmup_sched, cosine_sched],
+                milestones=[warmup_epochs],
             )
         else:
-            raise ValueError(f"Unsupported scheduler: {scheduler_name}. Supported: cosine")
+            raise ValueError(
+                f"Unsupported scheduler: {scheduler_name}. Supported: cosine"
+            )
         # Config 기반 criterion 생성
         criterion_name = train_cfg.get("criterion", "cross_entropy")
         if criterion_name == "cross_entropy":
@@ -169,9 +185,13 @@ class Classifier:
         elif criterion_name == "focal":
             alpha = float(train_cfg.get("focal_alpha", 0.25))
             gamma = float(train_cfg.get("focal_gamma", 2.0))
-            criterion = FocalLoss(alpha=alpha, gamma=gamma, label_smoothing=label_smoothing)
+            criterion = FocalLoss(
+                alpha=alpha, gamma=gamma, label_smoothing=label_smoothing
+            )
         else:
-            raise ValueError(f"Unsupported criterion: {criterion_name}. Supported: cross_entropy, bce, focal")
+            raise ValueError(
+                f"Unsupported criterion: {criterion_name}. Supported: cross_entropy, bce, focal"
+            )
 
         out_cfg = self.cfg["output"]
         weights_dir = Path(out_cfg["project"]) / out_cfg["name"] / "weights"
@@ -194,9 +214,15 @@ class Classifier:
             if last_metrics.get("top1_acc", 0.0) > best_top1:
                 best_top1 = last_metrics["top1_acc"]
                 best_metrics = last_metrics
-                torch.save(self._checkpoint(epoch, optimizer, last_metrics), weights_dir / "best.pt")
+                torch.save(
+                    self._checkpoint(epoch, optimizer, last_metrics),
+                    weights_dir / "best.pt",
+                )
 
-        torch.save(self._checkpoint(epochs - 1, optimizer, last_metrics), weights_dir / "last.pt")
+        torch.save(
+            self._checkpoint(epochs - 1, optimizer, last_metrics),
+            weights_dir / "last.pt",
+        )
         return best_metrics
 
     def evaluate(self, val_loader) -> dict:
@@ -246,17 +272,19 @@ class Classifier:
                 for i, (class_idx, score) in enumerate(
                     zip(indices.cpu().tolist(), scores.cpu().tolist())
                 ):
-                    results.append({
-                        "image_id": batch["image_id"][i],
-                        "crop_id": batch["crop_id"][i],
-                        "class_id": class_idx,
-                        "class_name": (
-                            self.class_names[class_idx]
-                            if self.class_names
-                            else str(class_idx)
-                        ),
-                        "score": float(score),
-                    })
+                    results.append(
+                        {
+                            "image_id": batch["image_id"][i],
+                            "crop_id": batch["crop_id"][i],
+                            "class_id": class_idx,
+                            "class_name": (
+                                self.class_names[class_idx]
+                                if self.class_names
+                                else str(class_idx)
+                            ),
+                            "score": float(score),
+                        }
+                    )
 
         return results
 
@@ -299,12 +327,18 @@ class Classifier:
 
     def _build_export_path(self, format: str) -> Path:
         out = self.cfg["output"]
-        return Path(out["project"]) / out["name"] / "weights" / f"{self.cfg['model']['name']}.{format}"
+        return (
+            Path(out["project"])
+            / out["name"]
+            / "weights"
+            / f"{self.cfg['model']['name']}.{format}"
+        )
 
 
 # ------------------------------------------------------------------
 # Module-level helpers
 # ------------------------------------------------------------------
+
 
 class _InferenceDataset(Dataset):
     """추론용 flat 크롭 디렉터리 데이터셋."""
@@ -321,8 +355,10 @@ class _InferenceDataset(Dataset):
         path = self.image_files[idx]
         stem = path.stem
 
-        img = Image.open(path).convert("RGB").resize(
-            (self.imgsz, self.imgsz), Image.BILINEAR
+        img = (
+            Image.open(path)
+            .convert("RGB")
+            .resize((self.imgsz, self.imgsz), Image.BILINEAR)
         )
         img_np = np.array(img, dtype=np.float32)
         img_np = (img_np / 255.0 - _IMAGENET_MEAN) / _IMAGENET_STD
@@ -378,12 +414,16 @@ def _resolve_device(device: str | None) -> str:
 class FocalLoss(nn.Module):
     """Focal Loss for classification."""
 
-    def __init__(self, alpha: float = 0.25, gamma: float = 2.0, label_smoothing: float = 0.0):
+    def __init__(
+        self, alpha: float = 0.25, gamma: float = 2.0, label_smoothing: float = 0.0
+    ):
         super().__init__()
         self.alpha = alpha
         self.gamma = gamma
         self.label_smoothing = label_smoothing
-        self.ce_loss = nn.CrossEntropyLoss(label_smoothing=label_smoothing, reduction='none')
+        self.ce_loss = nn.CrossEntropyLoss(
+            label_smoothing=label_smoothing, reduction="none"
+        )
 
     def forward(self, inputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         ce_loss = self.ce_loss(inputs, targets)

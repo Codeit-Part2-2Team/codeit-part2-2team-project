@@ -40,8 +40,10 @@ class Stage2Dataset(Dataset):
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, int]:
         path, label = self.samples[idx]
-        img = Image.open(path).convert("RGB").resize(
-            (self.imgsz, self.imgsz), Image.BILINEAR
+        img = (
+            Image.open(path)
+            .convert("RGB")
+            .resize((self.imgsz, self.imgsz), Image.BILINEAR)
         )
         img_np = np.array(img, dtype=np.float32)
 

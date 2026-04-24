@@ -1,7 +1,6 @@
 """pipeline/run.py 유틸 함수 단위 테스트."""
 
 import json
-from pathlib import Path
 
 from scripts.pipeline.run_predict import (
     merge_predictions,
@@ -14,21 +13,32 @@ from src.utils.path import (
 
 
 def test_resolve_stage1_paths_from_config():
-    cfg = {
-        "output": {"project": "experiments", "name": "exp_stage1"}
-    }
+    cfg = {"output": {"project": "experiments", "name": "exp_stage1"}}
     from src.utils.path import PROJECT_ROOT
-    assert resolve_weights_path(cfg, None) == PROJECT_ROOT / "experiments/exp_stage1/weights/best.pt"
-    assert resolve_predictions_path(cfg, None) == PROJECT_ROOT / "experiments/exp_stage1/results/predictions.json"
+
+    assert (
+        resolve_weights_path(cfg, None)
+        == PROJECT_ROOT / "experiments/exp_stage1/weights/best.pt"
+    )
+    assert (
+        resolve_predictions_path(cfg, None)
+        == PROJECT_ROOT / "experiments/exp_stage1/results/predictions.json"
+    )
 
 
 def test_resolve_stage2_paths_from_config():
-    cfg = {
-        "output": {"project": "experiments/stage2", "name": "exp_stage2"}
-    }
+    cfg = {"output": {"project": "experiments/stage2", "name": "exp_stage2"}}
     from src.utils.path import PROJECT_ROOT
-    assert resolve_weights_path(cfg, None) == PROJECT_ROOT / "experiments/stage2/exp_stage2/weights/best.pt"
-    assert resolve_stage2_predictions_path(cfg, None) == PROJECT_ROOT / "experiments/stage2/exp_stage2/results/stage2_predictions.json"
+
+    assert (
+        resolve_weights_path(cfg, None)
+        == PROJECT_ROOT / "experiments/stage2/exp_stage2/weights/best.pt"
+    )
+    assert (
+        resolve_stage2_predictions_path(cfg, None)
+        == PROJECT_ROOT
+        / "experiments/stage2/exp_stage2/results/stage2_predictions.json"
+    )
 
 
 def test_merge_predictions_with_manifest(tmp_path):
@@ -61,7 +71,9 @@ def test_merge_predictions_with_manifest(tmp_path):
     manifest_path = tmp_path / "crops_manifest.json"
     stage2_path = tmp_path / "stage2_predictions.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
-    stage2_path.write_text(json.dumps(stage2_predictions, ensure_ascii=False), encoding="utf-8")
+    stage2_path.write_text(
+        json.dumps(stage2_predictions, ensure_ascii=False), encoding="utf-8"
+    )
 
     merged = merge_predictions(manifest_path, stage2_path)
     assert merged == [

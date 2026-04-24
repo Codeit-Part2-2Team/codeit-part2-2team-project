@@ -42,7 +42,6 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-
 # 하드 제외 대상: 이번에 실제로 발견한 raw 이상치 샘플
 # stem 기준 (확장자 제외)
 EXCLUDE_IMAGE_STEMS = {
@@ -55,7 +54,9 @@ def parse_args() -> argparse.Namespace:
     커맨드라인 인자를 읽는다.
     기본값은 현재 프로젝트 구조 기준으로 설정했다.
     """
-    parser = argparse.ArgumentParser(description="Convert raw/external annotations to YOLO format.")
+    parser = argparse.ArgumentParser(
+        description="Convert raw/external annotations to YOLO format."
+    )
 
     parser.add_argument(
         "--project-root",
@@ -102,7 +103,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def coco_bbox_to_yolo(bbox: List[float], img_w: int, img_h: int) -> Tuple[float, float, float, float]:
+def coco_bbox_to_yolo(
+    bbox: List[float], img_w: int, img_h: int
+) -> Tuple[float, float, float, float]:
     """
     COCO 형식 bbox [x, y, w, h] 를 YOLO 형식 [x_center, y_center, w, h] (정규화)로 변환한다.
 
@@ -342,7 +345,9 @@ def main() -> None:
     print("=" * 70)
 
     if not raw_annotation_dir.exists():
-        raise FileNotFoundError(f"raw annotation 폴더를 찾을 수 없습니다: {raw_annotation_dir}")
+        raise FileNotFoundError(
+            f"raw annotation 폴더를 찾을 수 없습니다: {raw_annotation_dir}"
+        )
 
     for root in ext_label_roots:
         if not root.exists():

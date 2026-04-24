@@ -60,7 +60,13 @@ def resolve_predictions_path(cfg: dict, output_arg: str | None) -> Path:
     if output_arg:
         return resolve_project_path(output_arg)
     output = cfg["output"]
-    return PROJECT_ROOT / output["project"] / output["name"] / "results" / "predictions.json"
+    return (
+        PROJECT_ROOT
+        / output["project"]
+        / output["name"]
+        / "results"
+        / "predictions.json"
+    )
 
 
 def resolve_stage2_predictions_path(cfg: dict, output_arg: str | None) -> Path:
@@ -76,4 +82,10 @@ def resolve_stage2_predictions_path(cfg: dict, output_arg: str | None) -> Path:
     if output_arg:
         return resolve_project_path(output_arg)
     output = cfg["output"]
-    return PROJECT_ROOT / output["project"] / output["name"] / "results" / "stage2_predictions.json"
+    return (
+        PROJECT_ROOT
+        / output["project"]
+        / output["name"]
+        / "results"
+        / "stage2_predictions.json"
+    )

@@ -51,7 +51,6 @@ def test_validate_config_raises_on_multiple_missing_keys(sample_config):
         validate_config(sample_config)
 
 
-
 # ---------------------------------------------------------------------------
 # fix_seed
 # ---------------------------------------------------------------------------

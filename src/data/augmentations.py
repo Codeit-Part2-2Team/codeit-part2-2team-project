@@ -86,7 +86,9 @@ def _validate_transform_names(
     stage: str,
 ) -> None:
     unknown = sorted(
-        name for name in transform_cfg if name != _BBOX_KEY and name not in allowed_names
+        name
+        for name in transform_cfg
+        if name != _BBOX_KEY and name not in allowed_names
     )
     if unknown:
         raise ValueError(f"{stage}에서 지원하지 않는 transform입니다: {unknown}")
@@ -99,7 +101,9 @@ def _build_bbox_params(albumentations, params: dict | None):
     label_fields = params.pop("label_fields", ["class_labels"])
     min_visibility = float(params.pop("min_visibility", 0.0))
     if params:
-        raise ValueError(f"bbox 설정에 지원하지 않는 파라미터가 있습니다: {sorted(params)}")
+        raise ValueError(
+            f"bbox 설정에 지원하지 않는 파라미터가 있습니다: {sorted(params)}"
+        )
 
     return albumentations.BboxParams(
         format=bbox_format,
@@ -109,7 +113,9 @@ def _build_bbox_params(albumentations, params: dict | None):
     )
 
 
-def _build_transforms(albumentations, transform_cfg: dict, allowed_names: set[str]) -> list[Any]:
+def _build_transforms(
+    albumentations, transform_cfg: dict, allowed_names: set[str]
+) -> list[Any]:
     transforms = []
     for name, params in transform_cfg.items():
         if name == _BBOX_KEY or name not in allowed_names:
@@ -222,4 +228,6 @@ def _as_range(value: Any, cast=float) -> Any:
 
 def _raise_on_unused(name: str, params: dict) -> None:
     if params:
-        raise ValueError(f"{name}에 지원하지 않는 파라미터가 있습니다: {sorted(params)}")
+        raise ValueError(
+            f"{name}에 지원하지 않는 파라미터가 있습니다: {sorted(params)}"
+        )

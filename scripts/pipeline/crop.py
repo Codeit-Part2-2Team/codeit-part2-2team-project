@@ -103,7 +103,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Stage 1 예측 bbox 기준 알약 크롭 이미지 생성"
     )
-    parser.add_argument("--predictions", required=True, help="Stage 1 predictions.json 경로")
+    parser.add_argument(
+        "--predictions", required=True, help="Stage 1 predictions.json 경로"
+    )
     parser.add_argument("--source", required=True, help="원본 이미지 디렉터리")
     parser.add_argument("--output", required=True, help="크롭 이미지 저장 디렉터리")
     parser.add_argument(

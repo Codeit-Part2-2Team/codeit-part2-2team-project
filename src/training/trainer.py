@@ -8,9 +8,15 @@ import numpy as np
 
 # albumentations가 담당하는 항목 — YOLO augment와 중복 적용 방지
 _ALBUMENTATIONS_OVERRIDE = (
-    "fliplr", "flipud",
-    "hsv_h", "hsv_s", "hsv_v",
-    "degrees", "translate", "scale", "shear",
+    "fliplr",
+    "flipud",
+    "hsv_h",
+    "hsv_s",
+    "hsv_v",
+    "degrees",
+    "translate",
+    "scale",
+    "shear",
 )
 
 
@@ -130,5 +136,7 @@ class _AlbumentationsAdapter:
         if result["class_labels"]:
             labels["img"] = result["image"]
             labels["cls"] = np.array(result["class_labels"])
-            labels["instances"].update(bboxes=np.array(result["bboxes"], dtype=np.float32))
+            labels["instances"].update(
+                bboxes=np.array(result["bboxes"], dtype=np.float32)
+            )
         return labels

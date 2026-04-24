@@ -56,13 +56,17 @@ def test_classifier_init_builds_timm_model(fake_timm, sample_stage2_config):
     assert classifier.class_names == ["class_a", "class_b", "class_c"]
 
 
-def test_classifier_load_weights_returns_self(fake_timm, sample_stage2_config, monkeypatch):
+def test_classifier_load_weights_returns_self(
+    fake_timm, sample_stage2_config, monkeypatch
+):
     _, fake_model = fake_timm
     checkpoint = {
         "model_state_dict": {"layer.weight": torch.tensor([1.0])},
         "class_names": ["drug_a", "drug_b"],
     }
-    monkeypatch.setattr("src.models.classifier.torch.load", lambda *args, **kwargs: checkpoint)
+    monkeypatch.setattr(
+        "src.models.classifier.torch.load", lambda *args, **kwargs: checkpoint
+    )
 
     classifier = Classifier(sample_stage2_config)
     result = classifier.load_weights("weights/best.pt")
@@ -79,7 +83,9 @@ def test_classifier_raises_on_unsupported_model_name(fake_timm, sample_stage2_co
         Classifier(sample_stage2_config)
 
 
-def test_classifier_export_saves_onnx(fake_timm, sample_stage2_config, monkeypatch, tmp_path):
+def test_classifier_export_saves_onnx(
+    fake_timm, sample_stage2_config, monkeypatch, tmp_path
+):
     _, fake_model = fake_timm
     export_calls = {}
 
@@ -101,10 +107,7 @@ def test_classifier_export_saves_onnx(fake_timm, sample_stage2_config, monkeypat
     assert export_calls["opset_version"] == 17
     assert export_calls["output_path"] == output_path
     assert output_path == (
-        Path(tmp_path)
-        / "test_stage2"
-        / "weights"
-        / "efficientnetv2_s.onnx"
+        Path(tmp_path) / "test_stage2" / "weights" / "efficientnetv2_s.onnx"
     )
 
 
@@ -217,7 +220,9 @@ def test_predict_loader_no_class_names_uses_index(fake_timm, sample_stage2_confi
 # ---------------------------------------------------------------------------
 
 
-def test_fit_saves_checkpoints_and_returns_metrics(fake_timm, sample_stage2_config, tmp_path):
+def test_fit_saves_checkpoints_and_returns_metrics(
+    fake_timm, sample_stage2_config, tmp_path
+):
     """fit()이 best.pt / last.pt를 저장하고 top-k 지표 dict를 반환한다."""
     sample_stage2_config["output"]["project"] = str(tmp_path)
     sample_stage2_config["train"]["epochs"] = 2
@@ -245,7 +250,9 @@ def test_fit_saves_checkpoints_and_returns_metrics(fake_timm, sample_stage2_conf
 # ---------------------------------------------------------------------------
 
 
-def test_train_calls_fit_and_returns_metrics(fake_timm, sample_stage2_config, monkeypatch, tmp_path):
+def test_train_calls_fit_and_returns_metrics(
+    fake_timm, sample_stage2_config, monkeypatch, tmp_path
+):
     """train()이 Stage2Dataset을 생성하고 fit()을 호출한 뒤 결과를 반환한다."""
     sample_stage2_config["output"]["project"] = str(tmp_path)
 
@@ -253,7 +260,9 @@ def test_train_calls_fit_and_returns_metrics(fake_timm, sample_stage2_config, mo
     fake_ds.classes = ["class_a", "class_b", "class_c"]
     fake_ds.__len__ = MagicMock(return_value=2)
     fake_ds.__getitem__ = MagicMock(return_value=(torch.zeros(3, 224, 224), 0))
-    monkeypatch.setattr("src.data.stage2_dataset.Stage2Dataset", lambda *a, **kw: fake_ds)
+    monkeypatch.setattr(
+        "src.data.stage2_dataset.Stage2Dataset", lambda *a, **kw: fake_ds
+    )
 
     expected = {"top1_acc": 0.9, "top3_acc": 1.0}
 
@@ -272,7 +281,9 @@ def test_train_calls_fit_and_returns_metrics(fake_timm, sample_stage2_config, mo
 # ---------------------------------------------------------------------------
 
 
-def test_predict_writes_json_and_returns_results(fake_timm, sample_stage2_config, tmp_path):
+def test_predict_writes_json_and_returns_results(
+    fake_timm, sample_stage2_config, tmp_path
+):
     """predict()가 추론 결과를 JSON으로 저장하고 같은 결과를 반환한다."""
     source = tmp_path / "crops"
     source.mkdir()

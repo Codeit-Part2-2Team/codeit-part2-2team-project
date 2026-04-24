@@ -14,14 +14,22 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(next(p for p in Path(__file__).resolve().parents if (p / "requirements.txt").exists())))
+sys.path.insert(
+    0,
+    str(
+        next(
+            p
+            for p in Path(__file__).resolve().parents
+            if (p / "requirements.txt").exists()
+        )
+    ),
+)
 
+from src.utils.cli import run_command
 from src.utils.path import PROJECT_ROOT
 
 ROOT = PROJECT_ROOT
 SCRIPTS = ROOT / "scripts"
-
-from src.utils.cli import run_command
 
 
 def main() -> None:
@@ -30,27 +38,41 @@ def main() -> None:
     )
     parser.add_argument("--stage1-config", required=True, help="Stage 1 config 경로")
     parser.add_argument("--stage2-config", required=True, help="Stage 2 config 경로")
-    parser.add_argument("--data",          required=True, help="Stage 1 dataset.yaml 경로")
-    parser.add_argument("--crops",         required=True, help="Stage 2 학습용 GT crop 루트 디렉터리 (<crops>/train, <crops>/val)")
-    parser.add_argument("--device",        default=None,  help="GPU 번호 또는 'cpu'")
+    parser.add_argument("--data", required=True, help="Stage 1 dataset.yaml 경로")
+    parser.add_argument(
+        "--crops",
+        required=True,
+        help="Stage 2 학습용 GT crop 루트 디렉터리 (<crops>/train, <crops>/val)",
+    )
+    parser.add_argument("--device", default=None, help="GPU 번호 또는 'cpu'")
     args = parser.parse_args()
 
     # Stage 1 학습
     s1_cmd = [
-        sys.executable, str(SCRIPTS / "train.py"),
-        "--config", args.stage1_config,
-        "--data",   args.data,
+        sys.executable,
+        str(SCRIPTS / "train.py"),
+        "--config",
+        args.stage1_config,
+        "--data",
+        args.data,
     ]
     if args.device:
         s1_cmd += ["--device", args.device]
     run_command(s1_cmd, "Stage 1 학습", cwd=ROOT)
 
     # Stage 2 학습
-    run_command([
-        sys.executable, str(SCRIPTS / "pipeline" / "stage2_train.py"),
-        "--config", args.stage2_config,
-        "--data",   args.crops,
-    ], "Stage 2 학습", cwd=ROOT)
+    run_command(
+        [
+            sys.executable,
+            str(SCRIPTS / "pipeline" / "stage2_train.py"),
+            "--config",
+            args.stage2_config,
+            "--data",
+            args.crops,
+        ],
+        "Stage 2 학습",
+        cwd=ROOT,
+    )
 
 
 if __name__ == "__main__":
