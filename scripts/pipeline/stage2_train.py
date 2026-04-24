@@ -56,6 +56,10 @@ def main() -> None:
         val_ds, batch_size=batch, shuffle=False, num_workers=workers
     )
 
+    # 실제 클래스 수로 모델 빌드 (config 값 덮어쓰기)
+    cfg["model"]["num_classes"] = len(train_ds.classes)
+    cfg["nc"] = len(train_ds.classes)
+
     classifier = Classifier(cfg)
     classifier.class_names = train_ds.classes
     metrics = classifier.fit(train_loader, val_loader)

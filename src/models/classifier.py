@@ -44,6 +44,12 @@ class Classifier:
         if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
             state_dict = checkpoint["model_state_dict"]
             self.class_names = list(checkpoint.get("class_names", self.class_names))
+            # 저장된 클래스 수와 현재 모델이 다르면 모델을 재빌드
+            actual_nc = len(self.class_names)
+            if actual_nc and actual_nc != self.cfg["model"]["num_classes"]:
+                self.cfg["model"]["num_classes"] = actual_nc
+                self.cfg["nc"] = actual_nc
+                self.model = self._build_model().to(self.device)
         else:
             state_dict = checkpoint
         self.model.load_state_dict(state_dict)
@@ -75,6 +81,12 @@ class Classifier:
 
         train_ds = Stage2Dataset(train_dir, cfg, split="train")
         val_ds = Stage2Dataset(val_dir, cfg, split="val")
+
+        # 실제 클래스 수로 모델 재빌드
+        actual_nc = len(train_ds.classes)
+        self.cfg["model"]["num_classes"] = actual_nc
+        self.cfg["nc"] = actual_nc
+        self.model = self._build_model().to(self.device)
         self.class_names = train_ds.classes
 
         train_loader = DataLoader(
@@ -211,13 +223,22 @@ class Classifier:
             scheduler.step()
 
             last_metrics = self.evaluate(val_loader)
-            if last_metrics.get("top1_acc", 0.0) > best_top1:
-                best_top1 = last_metrics["top1_acc"]
+            top1 = last_metrics.get("top1_acc", 0.0)
+            top5 = last_metrics.get("top5_acc", 0.0)
+            lr = optimizer.param_groups[0]["lr"]
+            marker = ""
+            if top1 > best_top1:
+                best_top1 = top1
                 best_metrics = last_metrics
+                marker = "  ✓ best"
                 torch.save(
                     self._checkpoint(epoch, optimizer, last_metrics),
                     weights_dir / "best.pt",
                 )
+            print(
+                f"epoch {epoch + 1:>3}/{epochs}  "
+                f"top1={top1:.4f}  top5={top5:.4f}  lr={lr:.2e}{marker}"
+            )
 
         torch.save(
             self._checkpoint(epochs - 1, optimizer, last_metrics),
