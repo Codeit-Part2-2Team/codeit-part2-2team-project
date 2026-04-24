@@ -14,14 +14,15 @@ CLI 실행 스크립트입니다. **프로젝트 루트**에서 실행하세요.
 | `make_submission.py` | predictions.json → Kaggle 제출용 submission.csv 변환 | 도혁 |
 | `convert_annotations.py` | raw/external 어노테이션을 YOLO 라벨로 변환 | 소원 |
 
-### Stage 2 — 분류기 파이프라인 🚧 구현 예정
+### Stage 2 — 분류기 파이프라인
 
 | 스크립트 | 역할 |
 |----------|------|
 | `pipeline/crop.py` | Stage 1 predictions.json + 원본 이미지 → 알약 1개 단위 크롭 이미지 저장 |
 | `pipeline/stage2_train.py` | 크롭 이미지로 분류기 학습 → 가중치 저장 |
 | `pipeline/stage2_predict.py` | 크롭 이미지 분류 → stage2_predictions.json 저장 |
-| `pipeline/run.py` | Stage 1 추론 → 크롭 → Stage 2 추론 → submission.csv 통합 실행 |
+| `pipeline/run_train.py` | Stage 1 학습 → Stage 2 학습 통합 실행 |
+| `pipeline/run_predict.py` | Stage 1 추론 → 크롭 → Stage 2 추론 → submission.csv 통합 실행 |
 
 ---
 
@@ -76,7 +77,7 @@ data/raw/train/   experiments/.../config.yaml
       ▼
   submissions/submission.csv
 
-  ※ pipeline/run.py 로 위 추론 단계를 한 번에 실행 가능
+  ※ pipeline/run_predict.py 로 위 추론 단계를 한 번에 실행 가능
 ```
 
 `validate.py`는 파이프라인과 별도로, 학습 완료 후 val set 성능을 확인할 때 독립적으로 사용합니다.
@@ -131,10 +132,17 @@ python scripts/pipeline/stage2_predict.py \
     --config  experiments/stage2_classifier/exp_A/config.yaml \
     --source  data/processed/crops/inference/
 
-# 전체 통합 실행 (Stage 1 추론 → 크롭 → Stage 2 추론 → submission.csv)
-python scripts/pipeline/run.py \
-    --stage1-config experiments/stage1_detection/config.yaml \
-    --stage2-config experiments/stage2_classifier/exp_A/config.yaml \
+# 통합 학습 (Stage 1 → Stage 2)
+python scripts/pipeline/run_train.py \
+    --stage1-config experiments/exp_20260420_baseline_yolo26n/s1_config.yaml \
+    --stage2-config experiments/exp_20260420_baseline_yolo26n/s2_config.yaml \
+    --data          data/processed/dataset.yaml \
+    --crops         data/processed/crops/
+
+# 통합 추론 (Stage 1 추론 → 크롭 → Stage 2 추론 → submission.csv)
+python scripts/pipeline/run_predict.py \
+    --stage1-config experiments/exp_20260420_baseline_yolo26n/s1_config.yaml \
+    --stage2-config experiments/exp_20260420_baseline_yolo26n/s2_config.yaml \
     --source        data/raw/test/ \
     --output        submissions/submission.csv
 ```
@@ -161,6 +169,8 @@ python scripts/pipeline/run.py \
 | `--output` | | 자동 조합 | 우선순위: CLI → `{project}/{name}/results/predictions.json` |
 | `--tta` | | `false` | 우선순위: CLI `--tta` → config `val.tta` |
 
+> 참고: `predict.py`에서는 CLI 인자가 먼저 적용됩니다. `--weights`와 `--output`이 없을 경우에만 config의 `output.project/output.name` 기반 경로를 자동 조합합니다.
+
 ### validate.py
 
 | 인자 | 필수 | 기본값 | 설명 |
@@ -168,6 +178,8 @@ python scripts/pipeline/run.py \
 | `--config` | ✅ | — | config.yaml 경로 |
 | `--weights` | | 자동 조합 | 우선순위: CLI → `{project}/{name}/weights/best.pt` |
 | `--data` | | config | dataset.yaml 경로 (덮어쓰기) |
+
+> 참고: `validate.py`에서도 CLI 인자가 먼저 적용됩니다. `--weights`가 없으면 config의 output 설정 기준으로 weights 경로를 자동 조합하며, `--data`가 지정되면 config data 설정을 덮어씁니다.
 
 ### make_submission.py
 
@@ -213,7 +225,17 @@ python scripts/pipeline/run.py \
 | `--weights` | | 자동 조합 | 우선순위: CLI → `{project}/{name}/weights/best.pt` |
 | `--output` | | 자동 조합 | 우선순위: CLI → `{project}/{name}/results/stage2_predictions.json` |
 
-### pipeline/run.py
+### pipeline/run_train.py
+
+| 인자 | 필수 | 기본값 | 설명 |
+|------|------|--------|------|
+| `--stage1-config` | ✅ | — | Stage 1 config.yaml |
+| `--stage2-config` | ✅ | — | Stage 2 config.yaml |
+| `--data` | ✅ | — | Stage 1 dataset.yaml 경로 |
+| `--crops` | ✅ | — | Stage 2 학습용 GT crop 루트 디렉터리 |
+| `--device` | | config | GPU 번호 또는 `cpu` |
+
+### pipeline/run_predict.py
 
 | 인자 | 필수 | 기본값 | 설명 |
 |------|------|--------|------|
@@ -223,6 +245,7 @@ python scripts/pipeline/run.py \
 | `--output` | ✅ | — | submission.csv 저장 경로 |
 | `--stage1-weights` | | 자동 조합 | Stage 1 가중치 경로 |
 | `--stage2-weights` | | 자동 조합 | Stage 2 가중치 경로 |
+| `--crop-output` | | `data/processed/crops/inference` | 크롭 이미지 저장 디렉터리 |
 | `--padding` | | `0.05` | crop padding 비율 |
 
 ---
@@ -238,13 +261,18 @@ python scripts/pipeline/run.py \
   {
     "image_id": "test_0001",
     "detections": [
-      {"bbox": [120.0, 45.0, 380.0, 210.0], "score": 0.91}
+      {
+        "class_id": 0,
+        "class_name": "pill",
+        "bbox": [120.0, 45.0, 380.0, 210.0],
+        "score": 0.91
+      }
     ]
   }
 ]
 ```
 
-Stage 1이 pill 단일 클래스로 동작하므로 `class_id` / `class_name` 없음.
+Stage 1은 단일 클래스 탐지기이므로 `class_id`와 `class_name`은 기본적으로 하나의 pill 클래스를 의미합니다.
 
 ### crops_manifest.json
 

@@ -12,10 +12,20 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(
+    0,
+    str(
+        next(
+            p
+            for p in Path(__file__).resolve().parents
+            if (p / "requirements.txt").exists()
+        )
+    ),
+)
 
 from src.models.model_yolo import YOLOModel
 from src.models.predictor import Predictor
+from src.utils.path import resolve_weights_path, resolve_predictions_path
 
 
 def main():
@@ -43,17 +53,11 @@ def main():
     cfg = model.cfg
 
     # 우선순위: CLI --weights > 자동 조합 (output.project/output.name/weights/best.pt)
-    weights = (
-        args.weights
-        or f"{cfg['output']['project']}/{cfg['output']['name']}/weights/best.pt"
-    )
-    model.load_weights(weights)
+    weights = resolve_weights_path(cfg, args.weights)
+    model.load_weights(str(weights))
 
     # 우선순위: CLI --output > 자동 조합 (output.project/output.name/results/predictions.json)
-    output = (
-        args.output
-        or f"{cfg['output']['project']}/{cfg['output']['name']}/results/predictions.json"
-    )
+    output = resolve_predictions_path(cfg, args.output)
 
     # 우선순위: CLI --tta > config val.tta
     tta = args.tta or cfg["val"].get("tta", False)

@@ -34,6 +34,10 @@ def test_validate_config_passes_with_all_keys(sample_config):
     validate_config(sample_config)  # 예외 없음
 
 
+def test_validate_config_passes_with_stage2_keys(sample_stage2_config):
+    validate_config(sample_stage2_config)  # 예외 없음
+
+
 def test_validate_config_raises_on_missing_key(sample_config):
     del sample_config["model"]
     with pytest.raises(ValueError, match="model"):
