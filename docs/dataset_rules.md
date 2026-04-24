@@ -9,6 +9,7 @@
 | 버전 | 내용 | 상태 |
 |------|------|------|
 | v1.0 | raw + external 통합 (단일 클래스 pill 기준) | 완료 (2026-04-22) |
+| v1.1 | Stage 1용 수정본 | 완료 (2026-04-24) |
 | v2.0 | 클래스 추가/수정 시 새 버전으로 분리 | 예정 |
 
 ## Freeze 규칙
@@ -40,7 +41,7 @@
 ```csv
 version, filename
 0, 20260422_dataset_v1.0.zip
-1, 20260425_dataset_v1.1.zip
+1, 20260424_dataset_v1.1.zip
 ```
 
 ### 주의사항
@@ -61,24 +62,22 @@ data:
 
 ## 현재 데이터셋 구조
 
-```
 data/
 ├── raw/          # 원본 데이터 (56클래스, 수정 금지)
 ├── external/     # 외부 데이터 (319클래스)
 └── processed/
-    └── dataset_v1.0/   # Freeze 완료 데이터셋
-        ├── train/
-        ├── val/
-        ├── test/
-        └── dataset.yaml
-```
+└── dataset_v1.0/   # Freeze 완료 데이터셋
+├── train/
+├── val/
+├── test/
+└── dataset.yaml
 
 ## Stage별 데이터 사용 기준
 
 | Stage | 사용 데이터 | 클래스 | 비고 |
 |-------|-----------|--------|------|
 | Stage 1 (YOLO) | raw + external | pill (단일 클래스) | bbox 탐지만 담당 |
-| Stage 2 (Classifier) | raw + external | 브랜드명 (319 클래스) | bbox 크롭 후 분류 |
+| Stage 2 (Classifier) | raw + external | 브랜드명 (371 클래스) | bbox 크롭 후 분류 |
 
 ## Stage 2 크롭 규칙
 
@@ -94,6 +93,7 @@ data/
 | 버전 | 파일명 | 업로드일 | 비고 |
 |------|--------|---------|------|
 | v1.0 | yolo_dataset_v1.zip | 2026-04-22 | raw + external 통합, 단일 클래스 pill, nc=1 |
+| v1.1 | yolo_dataset_v1.1.zip | 2026-04-24 | Stage 1용 수정본 |
 
 > 최신 버전 다운로드 코드는 호정님이 별도 제공 예정
 
@@ -101,4 +101,5 @@ data/
 
 - Stage 1은 클래스 수 확정과 무관하게 단일 클래스 pill 기준으로 즉시 진행 가능하다
 - Stage 2는 클래스 매핑 확정 이후 최종 학습 기준을 고정한다
-- 클래스 매핑 완료 전까지 Stage 2 학습 시작 금지
+- 클래스 매핑 확정 완료 (2026-04-24, 371클래스, DE 소원)
+- Stage 2 학습 시작 가능 조건 충족
