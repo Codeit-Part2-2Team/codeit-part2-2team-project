@@ -111,8 +111,7 @@ python scripts/make_submission.py \
     --output submissions/submission.csv
 
 # 어노테이션 변환
-python scripts/convert_annotations.py \
-    --project-root .
+python -m scripts.convert_annotations --project-root .
 ```
 
 ### Stage 2 파이프라인
