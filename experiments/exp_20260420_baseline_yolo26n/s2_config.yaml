@@ -10,8 +10,8 @@ model:
   num_classes: 319
 
 data:
-  train: data/processed/crops/train/
-  val: data/processed/crops/val/
+  train: experiments/exp_20260420_baseline_yolo26n/stage1_crops
+  val: experiments/exp_20260420_baseline_yolo26n/stage1_crops
   imgsz: 224
   workers: 8
   version: "v1.0"
