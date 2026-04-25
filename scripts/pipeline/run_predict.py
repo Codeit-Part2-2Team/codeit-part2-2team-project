@@ -35,6 +35,7 @@ from src.utils.path import (
     resolve_weights_path,
 )
 from src.utils.submission import merge_predictions, save_submission
+from src.utils.timing import exp_dir_from_cfg, timed
 
 ROOT = PROJECT_ROOT
 SCRIPTS = ROOT / "scripts"
@@ -70,6 +71,7 @@ def main() -> None:
 
     stage1_cfg = load_config(args.stage1_config)
     stage2_cfg = load_config(args.stage2_config)
+    _exp_dir = exp_dir_from_cfg(stage1_cfg)
 
     stage1_weights = resolve_weights_path(stage1_cfg, args.stage1_weights)
     stage1_predictions = resolve_predictions_path(stage1_cfg, None)
@@ -78,62 +80,63 @@ def main() -> None:
     crop_output = resolve_project_path(args.crop_output)
     manifest_path = crop_output / "crops_manifest.json"
 
-    run_command(
-        [
-            sys.executable,
-            str(SCRIPTS / "predict.py"),
-            "--config",
-            args.stage1_config,
-            "--weights",
-            str(stage1_weights),
-            "--source",
-            args.source,
-            "--output",
-            str(stage1_predictions),
-        ],
-        f"Stage 1 추론: {args.source} → {stage1_predictions}",
-        cwd=ROOT,
-    )
+    with timed(_exp_dir, "pipeline_predict"):
+        run_command(
+            [
+                sys.executable,
+                str(SCRIPTS / "predict.py"),
+                "--config",
+                args.stage1_config,
+                "--weights",
+                str(stage1_weights),
+                "--source",
+                args.source,
+                "--output",
+                str(stage1_predictions),
+            ],
+            f"Stage 1 추론: {args.source} → {stage1_predictions}",
+            cwd=ROOT,
+        )
 
-    run_command(
-        [
-            sys.executable,
-            str(SCRIPTS / "pipeline" / "crop.py"),
-            "--predictions",
-            str(stage1_predictions),
-            "--source",
-            args.source,
-            "--output",
-            str(crop_output),
-            "--padding",
-            str(args.padding),
-        ],
-        f"crop 생성: {crop_output}",
-        cwd=ROOT,
-    )
+        run_command(
+            [
+                sys.executable,
+                str(SCRIPTS / "pipeline" / "crop.py"),
+                "--predictions",
+                str(stage1_predictions),
+                "--source",
+                args.source,
+                "--output",
+                str(crop_output),
+                "--padding",
+                str(args.padding),
+            ],
+            f"crop 생성: {crop_output}",
+            cwd=ROOT,
+        )
 
-    run_command(
-        [
-            sys.executable,
-            str(SCRIPTS / "pipeline" / "stage2_predict.py"),
-            "--config",
-            args.stage2_config,
-            "--weights",
-            str(stage2_weights),
-            "--source",
-            str(crop_output),
-            "--output",
-            str(stage2_predictions),
-        ],
-        f"Stage 2 추론: {crop_output} → {stage2_predictions}",
-        cwd=ROOT,
-    )
+        run_command(
+            [
+                sys.executable,
+                str(SCRIPTS / "pipeline" / "stage2_predict.py"),
+                "--config",
+                args.stage2_config,
+                "--weights",
+                str(stage2_weights),
+                "--source",
+                str(crop_output),
+                "--output",
+                str(stage2_predictions),
+            ],
+            f"Stage 2 추론: {crop_output} → {stage2_predictions}",
+            cwd=ROOT,
+        )
 
-    print("[실행] 결과 병합 및 submission 생성 중...")
-    merged = merge_predictions(manifest_path, stage2_predictions)
-    output_path = resolve_project_path(args.output)
-    save_submission(merged, output_path)
-    print(f"[완료] submission.csv → {output_path}")
+        print("[실행] 결과 병합 및 submission 생성 중...")
+        merged = merge_predictions(manifest_path, stage2_predictions)
+        output_path = resolve_project_path(args.output)
+        save_submission(merged, output_path)
+        print(f"[완료] submission.csv → {output_path}")
 
 
 if __name__ == "__main__":

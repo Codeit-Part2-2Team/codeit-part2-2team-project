@@ -22,6 +22,7 @@ from torch.utils.data import DataLoader
 from src.data.stage2_dataset import Stage2Dataset
 from src.models.classifier import Classifier
 from src.utils.config import load_config
+from src.utils.timing import exp_dir_from_cfg, timed
 
 
 def main() -> None:
@@ -67,7 +68,8 @@ def main() -> None:
 
     classifier = Classifier(cfg)
     classifier.class_names = train_ds.classes
-    metrics = classifier.fit(train_loader, val_loader)
+    with timed(exp_dir_from_cfg(cfg), "s2_train"):
+        metrics = classifier.fit(train_loader, val_loader)
     print(f"학습 완료: top1={metrics['top1_acc']:.4f}, top5={metrics['top5_acc']:.4f}")
 
 

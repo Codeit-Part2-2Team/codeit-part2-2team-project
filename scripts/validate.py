@@ -26,6 +26,7 @@ sys.path.insert(
 from src.models.model_yolo import YOLOModel
 from src.training.trainer import Trainer
 from src.utils.path import resolve_weights_path
+from src.utils.timing import exp_dir_from_cfg, timed
 
 
 def main():
@@ -48,7 +49,8 @@ def main():
     weights = resolve_weights_path(cfg, args.weights)
     model.load_weights(str(weights))
 
-    metrics = Trainer(model).validate(data_yaml=args.data)
+    with timed(exp_dir_from_cfg(cfg), "s1_validate"):
+        metrics = Trainer(model).validate(data_yaml=args.data)
     print(f"mAP50={metrics['mAP50']:.4f}  mAP50-95={metrics['mAP50_95']:.4f}")
 
 

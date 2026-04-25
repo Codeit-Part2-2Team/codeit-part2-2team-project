@@ -23,6 +23,7 @@ sys.path.insert(
 
 from src.models.model_yolo import YOLOModel
 from src.training.trainer import Trainer
+from src.utils.timing import exp_dir_from_cfg, timed
 
 
 def main():
@@ -41,7 +42,8 @@ def main():
     if args.device is not None:
         model.cfg["train"]["device"] = args.device
 
-    metrics = Trainer(model).train(data_yaml=args.data)
+    with timed(exp_dir_from_cfg(model.cfg), "s1_train"):
+        metrics = Trainer(model).train(data_yaml=args.data)
     print(f"mAP50={metrics['mAP50']:.4f}  mAP50-95={metrics['mAP50_95']:.4f}")
 
 
