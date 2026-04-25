@@ -50,9 +50,11 @@ def _load_json_map(path: str) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="Kaggle 제출 CSV 생성")
-    parser.add_argument("--manifest",   required=True, help="crops_manifest.json 경로")
-    parser.add_argument("--s2-preds",   required=True, help="stage2_predictions.json 경로")
-    parser.add_argument("--output",     required=True, help="submission.csv 저장 경로")
+    parser.add_argument("--manifest", required=True, help="crops_manifest.json 경로")
+    parser.add_argument(
+        "--s2-preds", required=True, help="stage2_predictions.json 경로"
+    )
+    parser.add_argument("--output", required=True, help="submission.csv 저장 경로")
     parser.add_argument(
         "--class-map",
         default=None,
@@ -69,7 +71,9 @@ def main():
     image_id_map = _load_json_map(args.image_id_map) if args.image_id_map else None
 
     predictions = merge_predictions(args.manifest, args.s2_preds)
-    save_submission(predictions, args.output, class_map=class_map, image_id_map=image_id_map)
+    save_submission(
+        predictions, args.output, class_map=class_map, image_id_map=image_id_map
+    )
     print(f"제출 파일 생성 완료: {args.output}")
 
 

@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -152,10 +151,11 @@ def compute_map(
     def _mean_ap(thrs: list[float]) -> float:
         if not ap_table:
             return 0.0
-        return float(np.mean([
-            np.mean([ap_table[cls].get(t, 0.0) for t in thrs])
-            for cls in ap_table
-        ]))
+        return float(
+            np.mean(
+                [np.mean([ap_table[cls].get(t, 0.0) for t in thrs]) for cls in ap_table]
+            )
+        )
 
     thrs_5095 = [t for t in iou_thrs if 0.50 <= t <= 0.95]
     thrs_7595 = [t for t in iou_thrs if 0.75 <= t <= 0.95]
@@ -164,8 +164,12 @@ def compute_map(
         cls: {
             "AP@0.50": ap_table[cls].get(0.50, 0.0),
             "AP@0.75": ap_table[cls].get(0.75, 0.0),
-            "AP@[0.50:0.95]": float(np.mean([ap_table[cls].get(t, 0.0) for t in thrs_5095])),
-            "AP@[0.75:0.95]": float(np.mean([ap_table[cls].get(t, 0.0) for t in thrs_7595])),
+            "AP@[0.50:0.95]": float(
+                np.mean([ap_table[cls].get(t, 0.0) for t in thrs_5095])
+            ),
+            "AP@[0.75:0.95]": float(
+                np.mean([ap_table[cls].get(t, 0.0) for t in thrs_7595])
+            ),
         }
         for cls in ap_table
     }
@@ -197,8 +201,11 @@ def load_gt(label_dir: Path, image_dir: Path) -> dict[str, list[dict]]:
         class_name = _normalize(_extract_class_name(stem))
 
         img_path = next(
-            (image_dir / f"{stem}{e}" for e in _IMAGE_EXTS
-             if (image_dir / f"{stem}{e}").exists()),
+            (
+                image_dir / f"{stem}{e}"
+                for e in _IMAGE_EXTS
+                if (image_dir / f"{stem}{e}").exists()
+            ),
             None,
         )
         if img_path is None:
@@ -212,13 +219,17 @@ def load_gt(label_dir: Path, image_dir: Path) -> dict[str, list[dict]]:
             if len(parts) < 5:
                 continue
             _, cx, cy, bw, bh = map(float, parts[:5])
-            gt[stem].append({
-                "bbox": [
-                    (cx - bw / 2) * W, (cy - bh / 2) * H,
-                    (cx + bw / 2) * W, (cy + bh / 2) * H,
-                ],
-                "class_name": class_name,
-            })
+            gt[stem].append(
+                {
+                    "bbox": [
+                        (cx - bw / 2) * W,
+                        (cy - bh / 2) * H,
+                        (cx + bw / 2) * W,
+                        (cy + bh / 2) * H,
+                    ],
+                    "class_name": class_name,
+                }
+            )
     return dict(gt)
 
 
@@ -242,11 +253,13 @@ def load_preds(
         s2 = s2_by_crop.get(crop["crop_id"])
         if s2 is None:
             continue
-        preds[crop["image_id"]].append({
-            "bbox": crop["bbox"],
-            "class_name": s2["class_name"],
-            "score": crop["score"] * s2["score"],
-        })
+        preds[crop["image_id"]].append(
+            {
+                "bbox": crop["bbox"],
+                "class_name": s2["class_name"],
+                "score": crop["score"] * s2["score"],
+            }
+        )
     return dict(preds), known_classes
 
 
@@ -256,11 +269,13 @@ def load_preds(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="2-Stage 파이프라인 end-to-end mAP 평가")
+    parser = argparse.ArgumentParser(
+        description="2-Stage 파이프라인 end-to-end mAP 평가"
+    )
     parser.add_argument("--gt-labels", required=True, help="YOLO label 디렉터리 (val)")
     parser.add_argument("--gt-images", required=True, help="원본 이미지 디렉터리 (val)")
-    parser.add_argument("--s1-crops",  required=True, help="Stage 1 crops manifest")
-    parser.add_argument("--s2-preds",  required=True, help="Stage 2 predictions JSON")
+    parser.add_argument("--s1-crops", required=True, help="Stage 1 crops manifest")
+    parser.add_argument("--s2-preds", required=True, help="Stage 2 predictions JSON")
     parser.add_argument("--per-class", action="store_true", help="클래스별 AP 출력")
     args = parser.parse_args()
 

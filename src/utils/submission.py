@@ -102,6 +102,6 @@ def save_submission(
     """predictions → CSV 저장."""
     out = Path(output)
     out.parent.mkdir(parents=True, exist_ok=True)
-    predictions_to_df(predictions, class_map=class_map, image_id_map=image_id_map).to_csv(
-        out, index=False
-    )
+    predictions_to_df(
+        predictions, class_map=class_map, image_id_map=image_id_map
+    ).to_csv(out, index=False)
