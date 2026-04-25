@@ -11,7 +11,7 @@ CLI 실행 스크립트입니다. **프로젝트 루트**에서 실행하세요.
 | `train.py` | config를 읽어 모델 학습 → 가중치 저장 | 승준 |
 | `predict.py` | 저장된 가중치로 이미지 추론 → predictions.json 저장 | 승준 |
 | `validate.py` | 저장된 가중치로 val set 평가 → mAP 출력 | 승준 |
-| `make_submission.py` | predictions.json → Kaggle 제출용 submission.csv 변환 | 도혁 |
+| `make_submission.py` | crops_manifest + stage2_predictions → Kaggle 제출용 submission.csv 변환 (score = det×cls, category_id 매핑 적용) | 도혁 |
 | `convert_annotations.py` | src/data 모듈을 이용해 raw/external 어노테이션을 YOLO 라벨로 변환 | 소원 |
 
 
@@ -25,6 +25,7 @@ CLI 실행 스크립트입니다. **프로젝트 루트**에서 실행하세요.
 | `pipeline/stage2_predict.py` | 크롭 이미지 분류 → stage2_predictions.json 저장 |
 | `pipeline/run_train.py` | Stage 1 학습 → Stage 2 학습 통합 실행 |
 | `pipeline/run_predict.py` | Stage 1 추론 → 크롭(inference 모드 자동) → Stage 2 추론 → submission.csv 통합 실행 |
+| `pipeline/evaluate_pipeline.py` | GT labels + S1 crops manifest + S2 predictions → end-to-end mAP@[0.50:0.95] / mAP@[0.75:0.95] 계산 (로컬 Kaggle 점수 추정) |
 
 ---
 
@@ -42,12 +43,6 @@ data/raw/train/   experiments/.../config.yaml
         │         experiments/.../config.yaml
         ▼                  │
   [ predict.py ] ──────────┘  →  experiments/.../results/predictions.json
-                                               │
-                                               ▼
-                                   [ make_submission.py ]
-                                               │
-                                               ▼
-                                   submissions/submission.csv
 ```
 
 ### 2단계 파이프라인 전체 흐름
@@ -98,10 +93,13 @@ data/raw/train/   experiments/.../config.yaml
   [ pipeline/stage2_predict.py ]  브랜드명 분류
       │  stage2_predictions.json
       ▼
-  [ make_submission.py ]          bbox + class 병합
-      │
+  [ make_submission.py ]          Kaggle category_id 매핑 + CSV 생성
+      │  --manifest crops_manifest.json
+      │  --s2-preds stage2_predictions.json
+      │  --class-map kaggle_class_map.json
       ▼
   submissions/submission.csv
+      score = det_score × cls_score
 ```
 
 `validate.py`는 파이프라인과 별도로, 학습 완료 후 val set 성능을 확인할 때 독립적으로 사용합니다.
@@ -128,10 +126,12 @@ python scripts/predict.py \
     --weights experiments/stage1_detection/weights/best.pt \
     --source  data/raw/test/
 
-# 제출 파일 생성
+# 제출 파일 생성 (2-stage 파이프라인 결과)
 python scripts/make_submission.py \
-    --predictions experiments/stage1_detection/results/predictions.json \
-    --output submissions/submission.csv
+    --manifest  experiments/{EXP}/stage1_crops/crops_manifest.json \
+    --s2-preds  experiments/{EXP}/stage2_predictions.json \
+    --class-map data/processed/kaggle_class_map.json \
+    --output    submissions/submission.csv
 
 # 어노테이션 변환
 python -m scripts.convert_annotations --project-root .
@@ -208,8 +208,13 @@ python scripts/pipeline/run_predict.py \
 
 | 인자 | 필수 | 기본값 | 설명 |
 |------|------|--------|------|
-| `--predictions` | ✅ | — | predictions.json 경로 |
+| `--manifest` | ✅ | — | crops_manifest.json 경로 (Stage 1 crop 메타) |
+| `--s2-preds` | ✅ | — | stage2_predictions.json 경로 |
 | `--output` | ✅ | — | submission.csv 저장 경로 |
+| `--class-map` | | — | Kaggle category_id 매핑 JSON `{class_name: id}` |
+| `--image-id-map` | | — | Kaggle image_id 매핑 JSON `{stem: int}` |
+
+score = `det_score` (manifest) × `cls_score` (stage2_predictions)
 
 ### convert_annotations.py
 
@@ -388,7 +393,7 @@ Stage 1은 단일 클래스 탐지기이므로 `class_id`와 `class_name`은 기
     "image_id":   "test_0001",
     "crop_id":    "test_0001_0",
     "class_id":   42,
-    "class_name": "Crestor 10mg tab",
+    "class_name": "crestor_tab_20mg",
     "score":      0.912
   }
 ]
@@ -400,7 +405,9 @@ Stage 1은 단일 클래스 탐지기이므로 `class_id`와 `class_name`은 기
 
 ```
 annotation_id, image_id, category_id, bbox_x, bbox_y, bbox_w, bbox_h, score
-1, test_0001, 42, 120, 45, 260, 165, 0.91
+1, 1, 16262, 120, 45, 260, 165, 0.84
 ```
 
-`crops_manifest.json`의 bbox + `stage2_predictions.json`의 class_id를 `crop_id` 기준으로 병합해 생성.
+- `category_id`: `kaggle_class_map.json` 기준 Kaggle dl_idx (예: crestor_tab_20mg → 16262)
+- `score`: `crops_manifest.json`의 det_score × `stage2_predictions.json`의 cls_score
+- `crops_manifest.json`의 bbox + `stage2_predictions.json`의 class를 `crop_id` 기준으로 병합해 생성.
