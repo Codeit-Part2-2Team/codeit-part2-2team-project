@@ -73,10 +73,7 @@ def main() -> None:
     raw_annotation_dir = project_root / args.raw_annotation_dir
     raw_output_dir = project_root / args.raw_output_dir
 
-    ext_label_roots = [
-        project_root / p
-        for p in args.ext_label_roots
-    ]
+    ext_label_roots = [project_root / p for p in args.ext_label_roots]
     ext_output_dir = project_root / args.ext_output_dir
 
     print("=" * 70)
@@ -98,9 +95,7 @@ def main() -> None:
 
     for root in ext_label_roots:
         if not root.exists():
-            raise FileNotFoundError(
-                f"external label 폴더를 찾을 수 없습니다: {root}"
-            )
+            raise FileNotFoundError(f"external label 폴더를 찾을 수 없습니다: {root}")
 
     convert_raw_annotations(
         raw_annotation_dir=raw_annotation_dir,

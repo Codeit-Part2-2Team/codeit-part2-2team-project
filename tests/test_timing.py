@@ -7,7 +7,6 @@ import pytest
 
 from src.utils.timing import exp_dir_from_cfg, record_time, timed
 
-
 # ── exp_dir_from_cfg ──────────────────────────────────────────────────────────
 
 
