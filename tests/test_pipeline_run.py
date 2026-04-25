@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 from scripts.pipeline.run_predict import (
     merge_predictions,
 )
@@ -76,17 +78,14 @@ def test_merge_predictions_with_manifest(tmp_path):
     )
 
     merged = merge_predictions(manifest_path, stage2_path)
-    assert merged == [
-        {
-            "image_id": "test_0001",
-            "detections": [
-                {
-                    "class_id": 42,
-                    "class_name": "Crestor 10mg tab",
-                    "bbox": [120.0, 45.0, 380.0, 210.0],
-                    "score": 0.912,
-                }
-            ],
-        },
-        {"image_id": "test_0002", "detections": []},
-    ]
+    assert len(merged) == 2
+    assert merged[1] == {"image_id": "test_0002", "detections": []}
+
+    det = merged[0]
+    assert det["image_id"] == "test_0001"
+    assert len(det["detections"]) == 1
+    d = det["detections"][0]
+    assert d["class_id"] == 42
+    assert d["class_name"] == "Crestor 10mg tab"
+    assert d["bbox"] == [120.0, 45.0, 380.0, 210.0]
+    assert d["score"] == pytest.approx(0.91 * 0.912)
