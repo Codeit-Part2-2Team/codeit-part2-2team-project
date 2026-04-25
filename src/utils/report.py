@@ -11,12 +11,12 @@ from pathlib import Path
 import pandas as pd
 
 _TIMING_LABELS: dict[str, str] = {
-    "s1_train":         "S1 학습",
-    "s1_validate":      "S1 검증",
-    "s1_predict":       "S1 추론",
-    "crop":             "Crop 생성",
-    "s2_train":         "S2 학습",
-    "s2_predict":       "S2 추론",
+    "s1_train": "S1 학습",
+    "s1_validate": "S1 검증",
+    "s1_predict": "S1 추론",
+    "crop": "Crop 생성",
+    "s2_train": "S2 학습",
+    "s2_predict": "S2 추론",
     "pipeline_predict": "파이프라인 추론",
 }
 
@@ -65,9 +65,9 @@ def load_s1_best_metrics(results_csv: Path) -> dict | None:
     df.columns = df.columns.str.strip()
     r = df.loc[df["metrics/mAP50(B)"].idxmax()]
     return {
-        "epoch":     int(r["epoch"]),
-        "mAP50":     float(r["metrics/mAP50(B)"]),
-        "mAP50_95":  float(r["metrics/mAP50-95(B)"]),
+        "epoch": int(r["epoch"]),
+        "mAP50": float(r["metrics/mAP50(B)"]),
+        "mAP50_95": float(r["metrics/mAP50-95(B)"]),
         "precision": float(r["metrics/precision(B)"]),
-        "recall":    float(r["metrics/recall(B)"]),
+        "recall": float(r["metrics/recall(B)"]),
     }

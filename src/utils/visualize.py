@@ -112,30 +112,56 @@ def plot_s1_gt_vs_pred(
         if label_path.exists():
             for line in label_path.read_text().strip().splitlines():
                 _, cx, cy, bw, bh = map(float, line.split())
-                gt_boxes.append((
-                    (cx - bw / 2) * W, (cy - bh / 2) * H,
-                    (cx + bw / 2) * W, (cy + bh / 2) * H,
-                ))
+                gt_boxes.append(
+                    (
+                        (cx - bw / 2) * W,
+                        (cy - bh / 2) * H,
+                        (cx + bw / 2) * W,
+                        (cy + bh / 2) * H,
+                    )
+                )
 
         axes[row, 0].imshow(img)
         for x1, y1, x2, y2 in gt_boxes:
-            axes[row, 0].add_patch(patches.Rectangle(
-                (x1, y1), x2 - x1, y2 - y1,
-                linewidth=2, edgecolor="green", facecolor="none",
-            ))
-        axes[row, 0].set_title(f"GT  {sample['image_id']}  ({len(gt_boxes)}개)", fontsize=9)
+            axes[row, 0].add_patch(
+                patches.Rectangle(
+                    (x1, y1),
+                    x2 - x1,
+                    y2 - y1,
+                    linewidth=2,
+                    edgecolor="green",
+                    facecolor="none",
+                )
+            )
+        axes[row, 0].set_title(
+            f"GT  {sample['image_id']}  ({len(gt_boxes)}개)", fontsize=9
+        )
         axes[row, 0].axis("off")
 
         axes[row, 1].imshow(img)
         for det in sample["detections"]:
             x1, y1, x2, y2 = det["bbox"]
-            axes[row, 1].add_patch(patches.Rectangle(
-                (x1, y1), x2 - x1, y2 - y1,
-                linewidth=2, edgecolor="red", facecolor="none",
-            ))
-            axes[row, 1].text(x1, y1 - 4, f"{det['score']:.2f}",
-                              color="red", fontsize=8, fontweight="bold")
-        axes[row, 1].set_title(f"예측  ({len(sample['detections'])}개 탐지)", fontsize=9)
+            axes[row, 1].add_patch(
+                patches.Rectangle(
+                    (x1, y1),
+                    x2 - x1,
+                    y2 - y1,
+                    linewidth=2,
+                    edgecolor="red",
+                    facecolor="none",
+                )
+            )
+            axes[row, 1].text(
+                x1,
+                y1 - 4,
+                f"{det['score']:.2f}",
+                color="red",
+                fontsize=8,
+                fontweight="bold",
+            )
+        axes[row, 1].set_title(
+            f"예측  ({len(sample['detections'])}개 탐지)", fontsize=9
+        )
         axes[row, 1].axis("off")
 
     plt.suptitle("Stage 1 멀티 알약 탐지 결과 — GT (초록) | 예측 (빨강)", fontsize=13)
@@ -169,10 +195,16 @@ def plot_crop_showcase(
     for i, item in enumerate(crops):
         color = plt.cm.tab10.colors[i % 10]
         x1, y1, x2, y2 = item["bbox"]
-        axes[0].add_patch(patches.Rectangle(
-            (x1, y1), x2 - x1, y2 - y1,
-            linewidth=2, edgecolor=color, facecolor="none",
-        ))
+        axes[0].add_patch(
+            patches.Rectangle(
+                (x1, y1),
+                x2 - x1,
+                y2 - y1,
+                linewidth=2,
+                edgecolor=color,
+                facecolor="none",
+            )
+        )
         axes[0].text(x1, y1 - 5, str(i), color=color, fontsize=9, fontweight="bold")
     axes[0].set_title(f"원본  {showcase_id}", fontsize=8)
     axes[0].axis("off")
@@ -208,11 +240,12 @@ def plot_crop_grid(crop_dir: Path, n: int = 32) -> None:
         ax.imshow(Image.open(f).convert("RGB"))
         ax.set_title(f.stem[-8:], fontsize=6)
         ax.axis("off")
-    for ax in ax_flat[len(sample_files):]:
+    for ax in ax_flat[len(sample_files) :]:
         ax.axis("off")
 
     plt.suptitle(
-        f"crop 랜덤 샘플  (전체 {len(crop_files)}개 중 {len(sample_files)}개)", fontsize=11
+        f"crop 랜덤 샘플  (전체 {len(crop_files)}개 중 {len(sample_files)}개)",
+        fontsize=11,
     )
     plt.tight_layout()
     plt.show()
@@ -250,22 +283,36 @@ def plot_pipeline_overlay(
         for i, item in enumerate(multi[img_id]):
             x1, y1, x2, y2 = item["bbox"]
             color = plt.cm.tab10.colors[i % 10]
-            ax.add_patch(patches.Rectangle(
-                (x1, y1), x2 - x1, y2 - y1,
-                linewidth=2.5, edgecolor=color, facecolor="none",
-            ))
+            ax.add_patch(
+                patches.Rectangle(
+                    (x1, y1),
+                    x2 - x1,
+                    y2 - y1,
+                    linewidth=2.5,
+                    edgecolor=color,
+                    facecolor="none",
+                )
+            )
             label = (
                 f"{item['class_name']}\n"
                 f"S1:{item['det_score']:.2f} S2:{item['class_score']:.2f}"
             )
-            ax.text(x1, y2 + 4, label, color="white", fontsize=7, fontweight="bold",
-                    bbox=dict(facecolor=color, alpha=0.8, pad=2,
-                              edgecolor="white", linewidth=1))
+            ax.text(
+                x1,
+                y2 + 4,
+                label,
+                color="white",
+                fontsize=7,
+                fontweight="bold",
+                bbox=dict(
+                    facecolor=color, alpha=0.8, pad=2, edgecolor="white", linewidth=1
+                ),
+            )
 
         ax.set_title(f"{img_id}  ({len(multi[img_id])}개 탐지)", fontsize=9)
         ax.axis("off")
 
-    for ax in axes.flatten()[len(sample_ids):]:
+    for ax in axes.flatten()[len(sample_ids) :]:
         ax.axis("off")
 
     plt.suptitle(
@@ -307,10 +354,16 @@ def plot_pipeline_strip(
     for i, item in enumerate(strip_items):
         color = plt.cm.tab10.colors[i % 10]
         x1, y1, x2, y2 = item["bbox"]
-        ax0.add_patch(patches.Rectangle(
-            (x1, y1), x2 - x1, y2 - y1,
-            linewidth=2, edgecolor=color, facecolor="none",
-        ))
+        ax0.add_patch(
+            patches.Rectangle(
+                (x1, y1),
+                x2 - x1,
+                y2 - y1,
+                linewidth=2,
+                edgecolor=color,
+                facecolor="none",
+            )
+        )
         ax0.text(x1, y1 - 5, str(i), color=color, fontsize=9, fontweight="bold")
     ax0.set_title(f"원본  {strip_id}", fontsize=8)
     ax0.axis("off")
@@ -321,9 +374,17 @@ def plot_pipeline_strip(
         ax_crop = fig.add_subplot(gs[1, i + 1])
         ax_cls = fig.add_subplot(gs[2, i + 1])
 
-        ax_num.text(0.5, 0.5, str(i), ha="center", va="center",
-                    fontsize=16, fontweight="bold", color=color,
-                    transform=ax_num.transAxes)
+        ax_num.text(
+            0.5,
+            0.5,
+            str(i),
+            ha="center",
+            va="center",
+            fontsize=16,
+            fontweight="bold",
+            color=color,
+            transform=ax_num.transAxes,
+        )
         ax_num.axis("off")
 
         crop_path = crop_dir / f"{item['crop_id']}.jpg"
@@ -332,11 +393,17 @@ def plot_pipeline_strip(
         ax_crop.set_title(f"det={item['det_score']:.2f}", fontsize=7)
         ax_crop.axis("off")
 
-        ax_cls.text(0.5, 0.5,
-                    f"{item['class_name']}\n{item['class_score']:.3f}",
-                    ha="center", va="center", fontsize=7, fontweight="bold",
-                    transform=ax_cls.transAxes,
-                    bbox=dict(facecolor=color, alpha=0.25, pad=3))
+        ax_cls.text(
+            0.5,
+            0.5,
+            f"{item['class_name']}\n{item['class_score']:.3f}",
+            ha="center",
+            va="center",
+            fontsize=7,
+            fontweight="bold",
+            transform=ax_cls.transAxes,
+            bbox=dict(facecolor=color, alpha=0.25, pad=3),
+        )
         ax_cls.axis("off")
 
     plt.suptitle(f"2-Stage 스트립 — {strip_id}", fontsize=12)
