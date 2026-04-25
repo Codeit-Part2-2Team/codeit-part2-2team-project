@@ -40,7 +40,7 @@ class Classifier:
 
     def load_weights(self, path: str | Path) -> "Classifier":
         """체크포인트 또는 state_dict를 로드한다."""
-        checkpoint = torch.load(path, map_location="cpu")
+        checkpoint = torch.load(path, map_location="cpu", weights_only=False)
         if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
             state_dict = checkpoint["model_state_dict"]
             self.class_names = list(checkpoint.get("class_names", self.class_names))
