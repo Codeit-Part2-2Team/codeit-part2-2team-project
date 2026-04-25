@@ -27,11 +27,11 @@ def results_csv(tmp_path):
     """최소 results.csv (3 에폭, mAP50 최대값이 에폭 2)."""
     df = pd.DataFrame(
         {
-            "epoch":                  [0, 1, 2],
-            "metrics/mAP50(B)":       [0.50, 0.80, 0.75],
-            "metrics/mAP50-95(B)":    [0.30, 0.55, 0.50],
-            "metrics/precision(B)":   [0.60, 0.85, 0.82],
-            "metrics/recall(B)":      [0.55, 0.83, 0.80],
+            "epoch": [0, 1, 2],
+            "metrics/mAP50(B)": [0.50, 0.80, 0.75],
+            "metrics/mAP50-95(B)": [0.30, 0.55, 0.50],
+            "metrics/precision(B)": [0.60, 0.85, 0.82],
+            "metrics/recall(B)": [0.55, 0.83, 0.80],
         }
     )
     path = tmp_path / "results.csv"
@@ -94,7 +94,7 @@ def test_load_s1_best_metrics_no_file_returns_none(tmp_path):
 def test_load_s1_best_metrics_returns_best_epoch(results_csv):
     m = load_s1_best_metrics(results_csv)
     assert m is not None
-    assert m["epoch"] == 1          # mAP50 최대값 에폭
+    assert m["epoch"] == 1  # mAP50 최대값 에폭
     assert m["mAP50"] == pytest.approx(0.80)
     assert m["mAP50_95"] == pytest.approx(0.55)
     assert m["precision"] == pytest.approx(0.85)
