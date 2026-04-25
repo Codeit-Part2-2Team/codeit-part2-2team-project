@@ -11,7 +11,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -35,47 +34,10 @@ from src.utils.path import (
     resolve_stage2_predictions_path,
     resolve_weights_path,
 )
-from src.utils.submission import save_submission
+from src.utils.submission import merge_predictions, save_submission
 
 ROOT = PROJECT_ROOT
 SCRIPTS = ROOT / "scripts"
-
-
-def merge_predictions(
-    manifest_path: str | Path, stage2_predictions_path: str | Path
-) -> list[dict]:
-    """Stage 2 예측 결과와 크롭 manifest를 crop_id 기준으로 병합한다.
-
-    Returns:
-        image_id별 detections 리스트 [{"image_id", "detections": [{"class_id", "class_name", "bbox", "score"}]}]
-    """
-    with Path(manifest_path).open(encoding="utf-8") as f:
-        manifest = json.load(f)
-    with Path(stage2_predictions_path).open(encoding="utf-8") as f:
-        stage2_predictions = json.load(f)
-
-    manifest_by_crop = {item["crop_id"]: item for item in manifest}
-    merged_by_image: dict[str, list[dict]] = {}
-
-    for record in stage2_predictions:
-        crop_id = record["crop_id"]
-        manifest_item = manifest_by_crop.get(crop_id)
-        if manifest_item is None:
-            raise KeyError(f"manifest에 없는 crop_id: {crop_id}")
-        merged_by_image.setdefault(record["image_id"], []).append(
-            {
-                "class_id": record["class_id"],
-                "class_name": record["class_name"],
-                "bbox": manifest_item["bbox"],
-                "score": record["score"],
-            }
-        )
-
-    image_ids = {item["image_id"] for item in manifest}
-    return [
-        {"image_id": iid, "detections": merged_by_image.get(iid, [])}
-        for iid in sorted(image_ids)
-    ]
 
 
 def main() -> None:
