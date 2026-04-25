@@ -136,8 +136,10 @@ python scripts/predict.py \
     --source data/raw/test/
 
 python scripts/make_submission.py \
-    --predictions experiments/exp_20260420_baseline_yolo26n/results/predictions.json \
-    --output submissions/submission.csv
+    --manifest  experiments/exp_20260420_baseline_yolo26n/stage1_crops/crops_manifest.json \
+    --s2-preds  experiments/exp_20260420_baseline_yolo26n/stage2_predictions.json \
+    --class-map data/processed/kaggle_class_map.json \
+    --output    submissions/submission.csv
 ```
 
 ### Stage 2 단독 실행
