@@ -14,7 +14,11 @@ src/
 ├── data/               # 데이터셋 클래스, 어노테이션 파서, 증강 파이프라인 🚧 미구현
 └── utils/
     ├── config.py        # load_config, validate_config, fix_seed ✅
-    └── submission.py    # predictions_to_df, save_submission ✅
+    ├── submission.py    # merge_predictions, predictions_to_df, save_submission ✅
+    ├── timing.py        # exp_dir_from_cfg, record_time, timed (context mgr) ✅
+    ├── report.py        # load_timings, print_timings, load_s1_best_metrics ✅
+    ├── visualize.py     # 노트북 시각화 유틸 (학습곡선·GT비교·crop·오버레이) ✅
+    └── classifier.py   # (src/models) Stage 2 분류기 래퍼 ✅
 ```
 
 > `src/data/` 는 현재 미구현 상태입니다. `from src.data import ...` 사용 시 ImportError가 발생합니다.
@@ -189,28 +193,139 @@ random / numpy / torch.manual_seed / torch.cuda.manual_seed(_all)
 
 ---
 
+## models/classifier.py — `Classifier`
+
+Stage 2 timm 분류기 래퍼입니다.
+
+### 체크포인트 포맷
+
+`fit()` / `train()` 완료 시 저장되는 `.pt` 구조:
+
+```python
+{
+    "epoch": int,
+    "model_state_dict": ...,
+    "optimizer_state_dict": ...,
+    "metrics": {          # val 지표 dict 전체 저장
+        "top1_acc": float,
+        "top5_acc": float,
+    },
+    "class_names": list[str],
+    "cfg": dict,
+}
+```
+
+> 구버전(`"top1_acc"` 단일 키)과 호환되지 않습니다. 기존 체크포인트는 재학습이 필요합니다.
+
+### num_classes 불일치 동작
+
+| 상황 | 동작 |
+|------|------|
+| `train()` / `stage2_train.py`: config ≠ 실제 클래스 수 | `ValueError` 발생 — config를 수동으로 수정하세요 |
+| `load_weights()`: 체크포인트 ≠ config 클래스 수 | 체크포인트 기준으로 모델 자동 재빌드 (정상 동작) |
+
+---
+
+## utils/timing.py
+
+### `exp_dir_from_cfg(cfg)`
+
+config의 `output` 섹션에서 실험 디렉터리 경로를 반환합니다.
+
+| config 종류 | output 예시 | 반환값 |
+|-------------|-------------|--------|
+| S1 | `project=experiments, name=exp_xxx` | `experiments/exp_xxx` |
+| S2 | `project=experiments/exp_xxx, name=stage2` | `experiments/exp_xxx` |
+
+S2 판별 기준: `project/` 안에 `s1_config.yaml` 또는 `weights/` 디렉터리가 있으면 `project` 자체를 반환합니다.
+
+### `record_time(exp_dir, key, elapsed)`
+
+`exp_dir/timings.json`에 `{key: elapsed_seconds}` 를 upsert합니다. 기존 파일이 있으면 병합합니다.
+
+### `timed(exp_dir, key)` — context manager
+
+```python
+with timed(exp_dir, "s1_train"):
+    trainer.train()
+# → timings.json에 s1_train 소요 시간 자동 기록
+```
+
+모든 학습·추론 스크립트에서 사용합니다. 완료 시 `⏱  {key}: {elapsed:.1f}초` 를 출력합니다.
+
+---
+
+## utils/report.py
+
+노트북에서 반복되는 지표 읽기·출력 코드를 담은 유틸입니다.
+
+### `load_timings(exp_dir)` → `dict`
+
+`exp_dir/timings.json` 로드. 파일 없으면 빈 dict 반환.
+
+### `print_timings(exp_dir)`
+
+소요 시간 요약 출력. 키가 없으면 경고 메시지만 표시합니다.  
+`pipeline_predict - (s1_predict + crop + s2_predict)` 오버헤드도 함께 계산해 표시합니다.
+
+### `load_s1_best_metrics(results_csv)` → `dict | None`
+
+`results.csv`에서 `mAP50` 최고 에폭의 지표를 반환합니다. 파일 없으면 `None`.
+
+```python
+m = load_s1_best_metrics(Path("experiments/.../results.csv"))
+# {"epoch": 42, "mAP50": 0.95, "mAP50_95": 0.81, "precision": 0.97, "recall": 0.94}
+```
+
+---
+
+## utils/visualize.py
+
+노트북 시각화 코드를 함수로 제공합니다. 반복되는 boilerplate를 제거하는 용도로만 사용합니다.
+
+| 함수 | 역할 |
+|------|------|
+| `plot_training_curves(results_csv, save_dir)` | Loss / mAP 학습 곡선 |
+| `plot_s1_gt_vs_pred(predictions, val_img_dir, val_label_dir, n)` | Stage 1 GT vs 예측 bbox 비교 |
+| `plot_crop_showcase(manifest, crop_dir, img_dir, save_dir)` | 탐지 수 최다 이미지 + 각 crop |
+| `plot_crop_grid(crop_dir, n)` | 랜덤 crop n개 그리드 |
+| `plot_pipeline_overlay(pipeline_by_img, img_dir, n, save_dir)` | 2-Stage 오버레이 (멀티 탐지) |
+| `plot_pipeline_strip(pipeline_by_img, crop_dir, img_dir, save_dir)` | 원본 + crop + 분류결과 스트립 |
+
+`save_dir` 지정 시 해당 디렉터리에 PNG 저장, 미지정 시 화면에만 표시합니다.
+
+---
+
 ## utils/submission.py
 
-### `predictions_to_df(predictions)`
+### `merge_predictions(manifest_path, stage2_predictions_path)`
 
-predictions.json 리스트를 Kaggle 제출 포맷 DataFrame으로 변환합니다.
+`crops_manifest.json` + `stage2_predictions.json` → image_id별 detections 병합.
+
+- `score = det_score (manifest) × cls_score (stage2)`
+- `crop_id` 기준으로 두 파일을 join
+
+### `predictions_to_df(predictions, class_map=None, image_id_map=None)`
+
+merge_predictions() 결과를 Kaggle 제출 포맷 DataFrame으로 변환합니다.
 
 - bbox **xyxy → xywh** 변환 (`w = x2 - x1`, `h = y2 - y1`, 반올림)
 - `annotation_id` 1부터 순차 부여
-- 미검출 이미지(`detections: []`)는 행 생성 안 함
+- `class_map`: `{class_name: category_id}` — 미지정 시 내부 class_id 사용
+- `image_id_map`: `{stem: int}` — 미지정 시 파일명 그대로 사용
 
 반환 DataFrame 컬럼:
 
 | 컬럼 | 설명 |
 |------|------|
 | `annotation_id` | 1부터 순차 증가 |
-| `image_id` | 이미지 식별자 |
-| `category_id` | `class_id`와 동일 |
+| `image_id` | image_id_map 적용 결과 (없으면 원본 문자열) |
+| `category_id` | class_map 적용 결과 (없으면 내부 class_id) |
 | `bbox_x`, `bbox_y` | bbox 좌상단 좌표 (정수) |
 | `bbox_w`, `bbox_h` | bbox 너비·높이 (정수) |
-| `score` | confidence score |
+| `score` | det_score × cls_score |
 
-### `save_submission(predictions, output)`
+### `save_submission(predictions, output, class_map=None, image_id_map=None)`
 
 `predictions_to_df()` 호출 후 CSV로 저장합니다. 상위 디렉터리가 없으면 자동 생성합니다.
 
