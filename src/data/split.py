@@ -32,8 +32,8 @@ def split_files(
     n_val = int(n * val_ratio)
 
     train_files = files[:n_train]
-    val_files = files[n_train:n_train + n_val]
-    test_files = files[n_train + n_val:]
+    val_files = files[n_train : n_train + n_val]
+    test_files = files[n_train + n_val :]
 
     return train_files, val_files, test_files
 

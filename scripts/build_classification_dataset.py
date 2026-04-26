@@ -56,12 +56,7 @@ def count_crops(crop_root: Path) -> pd.DataFrame:
 
     for class_dir in crop_root.iterdir():
         if class_dir.is_dir():
-            rows.append(
-                (
-                    class_dir.name,
-                    len(list(class_dir.glob("*")))
-                )
-            )
+            rows.append((class_dir.name, len(list(class_dir.glob("*")))))
 
     return (
         pd.DataFrame(rows, columns=["final_class_name", "crop_count"])
@@ -76,11 +71,7 @@ def load_keep_under10(path: Path | None) -> List[str]:
 
     lines = path.read_text(encoding="utf-8").splitlines()
 
-    return [
-        line.strip()
-        for line in lines
-        if line.strip() and not line.startswith("#")
-    ]
+    return [line.strip() for line in lines if line.strip() and not line.startswith("#")]
 
 
 def build_filtered_crops(
@@ -113,9 +104,7 @@ def main() -> None:
     ensure_clean_dir(args.cls_root, args.reset_cls_root)
 
     print("[1/6] class map 로드")
-    raw_class_map, ext_class_map = load_class_maps(
-        args.final_class_table
-    )
+    raw_class_map, ext_class_map = load_class_maps(args.final_class_table)
 
     print(f"raw classes: {len(raw_class_map)}")
     print(f"external classes: {len(ext_class_map)}")
@@ -147,13 +136,10 @@ def main() -> None:
     keep_under10 = load_keep_under10(args.keep_under10_file)
 
     auto_keep = crop_df.loc[
-        crop_df["crop_count"] >= args.min_images,
-        "final_class_name"
+        crop_df["crop_count"] >= args.min_images, "final_class_name"
     ].tolist()
 
-    final_keep_classes = sorted(
-        set(auto_keep + keep_under10)
-    )
+    final_keep_classes = sorted(set(auto_keep + keep_under10))
 
     print(f"auto keep: {len(auto_keep)}")
     print(f"manual keep: {len(keep_under10)}")

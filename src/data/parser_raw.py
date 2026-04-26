@@ -7,7 +7,6 @@ from typing import Dict, List, Tuple
 
 from PIL import Image
 
-
 EXCLUDE_IMAGE_STEMS = {
     "K-003351-016262-018357_0_2_0_2_75_000_200",
 }
