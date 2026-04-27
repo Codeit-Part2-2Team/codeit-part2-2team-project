@@ -193,12 +193,45 @@ def _normalize(name: str) -> str:
     return name.lower().replace("-", "_")
 
 
-def load_gt(label_dir: Path, image_dir: Path) -> dict[str, list[dict]]:
-    """YOLO label txt + 이미지 → {image_id: [{bbox(pixel), class_name}]}"""
+def _build_class_lookup(crops_root: Path) -> dict[str, str]:
+    """train/val crops_manifest.json에서 {추출된_파일명_키 → class_name} 빌드."""
+    import re as _re
+    lookup: dict[str, str] = {}
+    for split in ("train", "val"):
+        manifest_path = crops_root / split / "crops_manifest.json"
+        if not manifest_path.exists():
+            continue
+        with open(manifest_path, encoding="utf-8") as f:
+            for r in json.load(f):
+                if not r.get("class_name"):
+                    continue
+                stem = _re.sub(r"_\d+$", "", r["image_id"])
+                key = _normalize(_extract_class_name(stem)).rstrip("_-")
+                lookup[key] = r["class_name"]
+    return lookup
+
+
+def load_gt(
+    label_dir: Path,
+    image_dir: Path,
+    class_lookup: dict[str, str] | None = None,
+) -> dict[str, list[dict]]:
+    """YOLO label txt + 이미지 → {image_id: [{bbox(pixel), class_name}]}
+
+    class_lookup 지정 시 파일명 추출 결과를 lookup으로 보정한다.
+    lookup에 없는 이미지는 GT에서 제외된다.
+    """
     gt: dict[str, list] = defaultdict(list)
     for label_file in sorted(label_dir.glob("*.txt")):
         stem = label_file.stem
-        class_name = _normalize(_extract_class_name(stem))
+        key = _normalize(_extract_class_name(stem)).rstrip("_-")
+
+        if class_lookup is not None:
+            class_name = class_lookup.get(key)
+            if class_name is None:
+                continue
+        else:
+            class_name = key
 
         img_path = next(
             (
@@ -277,10 +310,23 @@ def main() -> None:
     parser.add_argument("--s1-crops", required=True, help="Stage 1 crops manifest")
     parser.add_argument("--s2-preds", required=True, help="Stage 2 predictions JSON")
     parser.add_argument("--per-class", action="store_true", help="클래스별 AP 출력")
+    parser.add_argument(
+        "--kaggle-classes",
+        default=None,
+        help="Kaggle class map JSON ({class_name: category_id}). 지정 시 해당 클래스만 평가 (submission 기준과 일치)",
+    )
     args = parser.parse_args()
 
-    gt = load_gt(Path(args.gt_labels), Path(args.gt_images))
+    # gt-labels 경로 기준으로 crops manifest 자동 탐색 (data/processed/labels/val → data/processed/crops)
+    crops_root = Path(args.gt_labels).parent.parent / "crops"
+    class_lookup = _build_class_lookup(crops_root) if crops_root.exists() else None
+    gt = load_gt(Path(args.gt_labels), Path(args.gt_images), class_lookup)
     preds, known_classes = load_preds(Path(args.s1_crops), Path(args.s2_preds))
+
+    if args.kaggle_classes:
+        with open(args.kaggle_classes, encoding="utf-8") as f:
+            kaggle_map = json.load(f)
+        known_classes = {k for k in kaggle_map if k != "_comment"}
 
     n_gt_imgs = len(gt)
     n_gt_objs = sum(len(v) for v in gt.values())
@@ -288,8 +334,9 @@ def main() -> None:
 
     result = compute_map(gt, preds, known_classes=known_classes)
 
+    mode = "Kaggle 클래스 기준" if args.kaggle_classes else "Stage 2 학습 클래스 기준"
     print(f"GT     : {n_gt_imgs}장  {n_gt_objs}개 객체")
-    print(f"Pred   : {n_pred_objs}개 / {result['n_classes']}클래스 평가")
+    print(f"Pred   : {n_pred_objs}개 / {result['n_classes']}클래스 평가  [{mode}]")
     print(f"mAP@[0.50:0.95] : {result['mAP@[0.50:0.95]']:.4f}  (COCO)")
     print(f"mAP@[0.75:0.95] : {result['mAP@[0.75:0.95]']:.4f}  (Kaggle)")
     print(f"mAP@0.50        : {result['mAP@0.50']:.4f}")
