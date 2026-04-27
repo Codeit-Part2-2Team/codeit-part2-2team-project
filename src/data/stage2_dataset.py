@@ -23,20 +23,31 @@ class Stage2Dataset(Dataset):
     class_name이 없는 레코드(iOS 파일 등)는 자동으로 제외된다.
     """
 
-    def __init__(self, root: str | Path, cfg: dict, split: str):
+    def __init__(self, root: str | Path, cfg: dict, split: str, classes: list[str] | None = None):
         root = Path(root)
         manifest_path = root if root.suffix == ".json" else root / "crops_manifest.json"
 
         with open(manifest_path, encoding="utf-8") as f:
             records = [r for r in json.load(f) if r.get("class_name")]
 
-        self.classes = sorted({r["class_name"] for r in records})
+        if classes is not None:
+            self.classes = list(classes)
+        else:
+            self.classes = sorted({r["class_name"] for r in records})
         self.class_to_idx = {cls: i for i, cls in enumerate(self.classes)}
         self.samples: list[tuple[Path, int]] = [
-            (Path(r["crop_path"]), self.class_to_idx[r["class_name"]]) for r in records
+            (Path(r["crop_path"]), self.class_to_idx[r["class_name"]])
+            for r in records
+            if r["class_name"] in self.class_to_idx
         ]
         self.imgsz = int(cfg["data"]["imgsz"])
         self.transform = build_stage2_transforms(cfg, split)
+
+    def get_sample_weights(self) -> list[float]:
+        """클래스 빈도 역수 기반 샘플 가중치 반환 (WeightedRandomSampler용)."""
+        from collections import Counter
+        label_counts = Counter(label for _, label in self.samples)
+        return [1.0 / label_counts[label] for _, label in self.samples]
 
     def __len__(self) -> int:
         return len(self.samples)

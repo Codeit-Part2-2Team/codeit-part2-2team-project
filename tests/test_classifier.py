@@ -245,6 +245,97 @@ def test_fit_saves_checkpoints_and_returns_metrics(
     assert 0.0 <= metrics["top1_acc"] <= 1.0
 
 
+def test_fit_checkpoint_includes_scheduler_state(
+    fake_timm, sample_stage2_config, tmp_path
+):
+    """저장된 체크포인트에 scheduler_state_dict가 포함된다."""
+    sample_stage2_config["output"]["project"] = str(tmp_path)
+    sample_stage2_config["train"]["epochs"] = 1
+    sample_stage2_config["train"]["warmup_epochs"] = 0
+
+    classifier = Classifier(sample_stage2_config)
+    classifier.model = nn.Linear(4, 3)
+
+    loader = [(torch.randn(2, 4), torch.tensor([0, 1]))]
+    classifier.fit(loader, loader)
+
+    ckpt = torch.load(
+        tmp_path / "test_stage2" / "weights" / "last.pt",
+        map_location="cpu",
+        weights_only=False,
+    )
+    assert "scheduler_state_dict" in ckpt
+
+
+def test_fit_resume_restores_epoch_and_state(
+    fake_timm, sample_stage2_config, tmp_path, monkeypatch
+):
+    """resume_from 지정 시 저장된 epoch 다음부터 학습을 시작한다."""
+    sample_stage2_config["output"]["project"] = str(tmp_path)
+    sample_stage2_config["train"]["epochs"] = 4
+    sample_stage2_config["train"]["warmup_epochs"] = 1
+
+    classifier = Classifier(sample_stage2_config)
+    classifier.model = nn.Linear(4, 3)
+
+    loader = [(torch.randn(2, 4), torch.tensor([0, 1]))]
+
+    # epoch=1까지 학습 후 last.pt 저장
+    sample_stage2_config["train"]["epochs"] = 2
+    classifier.fit(loader, loader)
+    last_pt = tmp_path / "test_stage2" / "weights" / "last.pt"
+    assert last_pt.exists()
+
+    # epoch 로그 캡처
+    printed = []
+    monkeypatch.setattr("builtins.print", lambda *a, **kw: printed.append(str(a)))
+
+    sample_stage2_config["train"]["epochs"] = 4
+    classifier2 = Classifier(sample_stage2_config)
+    classifier2.model = nn.Linear(4, 3)
+    classifier2.fit(loader, loader, resume_from=last_pt)
+
+    # "resumed from epoch" 메시지가 출력되어야 함
+    assert any("resumed from epoch" in line for line in printed)
+
+
+def test_fit_resume_epoch_range(
+    fake_timm, sample_stage2_config, tmp_path
+):
+    """resume 시 전체 epochs 중 이미 완료한 epoch을 건너뛰고 나머지만 학습한다."""
+    sample_stage2_config["output"]["project"] = str(tmp_path)
+    sample_stage2_config["train"]["warmup_epochs"] = 0
+
+    classifier = Classifier(sample_stage2_config)
+    classifier.model = nn.Linear(4, 3)
+    loader = [(torch.randn(2, 4), torch.tensor([0, 1]))]
+
+    # 2 epochs 학습
+    sample_stage2_config["train"]["epochs"] = 2
+    classifier.fit(loader, loader)
+
+    ckpt = torch.load(
+        tmp_path / "test_stage2" / "weights" / "last.pt",
+        map_location="cpu",
+        weights_only=False,
+    )
+    # last.pt의 epoch은 1 (0-indexed, epochs-1)
+    assert ckpt["epoch"] == 1
+
+    # 이어서 epochs=4로 resume → 2 epoch 추가 학습
+    sample_stage2_config["train"]["epochs"] = 4
+    classifier2 = Classifier(sample_stage2_config)
+    classifier2.model = nn.Linear(4, 3)
+    classifier2.fit(loader, loader, resume_from=tmp_path / "test_stage2" / "weights" / "last.pt")
+
+    final_ckpt = torch.load(
+        tmp_path / "test_stage2" / "weights" / "last.pt",
+        map_location="cpu",
+        weights_only=False,
+    )
+    assert final_ckpt["epoch"] == 3  # epochs-1 = 3
+
+
 # ---------------------------------------------------------------------------
 # train (high-level)
 # ---------------------------------------------------------------------------
