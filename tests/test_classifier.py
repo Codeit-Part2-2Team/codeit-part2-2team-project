@@ -267,9 +267,7 @@ def test_fit_checkpoint_includes_scheduler_state(
     assert "scheduler_state_dict" in ckpt
 
 
-def test_fit_resume_restores_epoch_and_state(
-    fake_timm, sample_stage2_config, tmp_path
-):
+def test_fit_resume_restores_epoch_and_state(fake_timm, sample_stage2_config, tmp_path):
     """resume_from 지정 시 저장된 epoch 다음부터 학습을 시작한다."""
     sample_stage2_config["output"]["project"] = str(tmp_path)
     sample_stage2_config["train"]["warmup_epochs"] = 1

@@ -73,7 +73,7 @@ def predictions_to_df(
             image_id = mapped
         else:
             image_id = raw_image_id
-        
+
         for det in item["detections"]:
             x1, y1, x2, y2 = det["bbox"]
             if class_map is not None:

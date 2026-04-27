@@ -36,6 +36,8 @@
         --splits      train val
 """
 
+from PIL import Image
+from src.utils.timing import timed
 from __future__ import annotations
 
 import argparse
@@ -53,9 +55,9 @@ if root is None:
     raise RuntimeError("project root (requirements.txt) not found")
 sys.path.insert(0, str(root))
 
-from PIL import Image
 
-from src.utils.timing import timed
+
+
 
 _IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"]
 
@@ -159,7 +161,7 @@ def crop_from_gt(
                     skipped += 1
                     continue
             else:
-                class_name = _extract_class_name(stem)
+                class_name = extract_class_name(stem)
 
             img_path = _find_image(image_dir, stem)
             if img_path is None:
