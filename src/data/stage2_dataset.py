@@ -23,7 +23,9 @@ class Stage2Dataset(Dataset):
     class_name이 없는 레코드(iOS 파일 등)는 자동으로 제외된다.
     """
 
-    def __init__(self, root: str | Path, cfg: dict, split: str, classes: list[str] | None = None):
+    def __init__(
+        self, root: str | Path, cfg: dict, split: str, classes: list[str] | None = None
+    ):
         root = Path(root)
         manifest_path = root if root.suffix == ".json" else root / "crops_manifest.json"
 
@@ -46,6 +48,7 @@ class Stage2Dataset(Dataset):
     def get_sample_weights(self) -> list[float]:
         """클래스 빈도 역수 기반 샘플 가중치 반환 (WeightedRandomSampler용)."""
         from collections import Counter
+
         label_counts = Counter(label for _, label in self.samples)
         return [1.0 / label_counts[label] for _, label in self.samples]
 

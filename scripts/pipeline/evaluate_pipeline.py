@@ -196,6 +196,7 @@ def _normalize(name: str) -> str:
 def _build_class_lookup(crops_root: Path) -> dict[str, str]:
     """train/val crops_manifest.json에서 {추출된_파일명_키 → class_name} 빌드."""
     import re as _re
+
     lookup: dict[str, str] = {}
     for split in ("train", "val"):
         manifest_path = crops_root / split / "crops_manifest.json"

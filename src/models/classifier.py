@@ -143,7 +143,9 @@ class Classifier:
     # Low-level interface
     # ------------------------------------------------------------------
 
-    def fit(self, train_loader, val_loader, resume_from: str | Path | None = None) -> dict:
+    def fit(
+        self, train_loader, val_loader, resume_from: str | Path | None = None
+    ) -> dict:
         """학습 루프 실행 후 best val 지표를 반환한다.
 
         Returns:
@@ -237,7 +239,9 @@ class Classifier:
             best_top1 = ckpt["metrics"].get("top1_acc", 0.0)
             best_metrics = ckpt["metrics"]
             self.class_names = list(ckpt.get("class_names", self.class_names))
-            print(f"resumed from epoch {start_epoch}/{epochs}  best_top1={best_top1:.4f}")
+            print(
+                f"resumed from epoch {start_epoch}/{epochs}  best_top1={best_top1:.4f}"
+            )
 
         for epoch in range(start_epoch, epochs):
             self.model.train()

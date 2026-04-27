@@ -265,7 +265,9 @@ def convert_from_imagefolder(
         )
 
 
-def build_class_lookup(imagefolder_root: Path, splits: list[str]) -> dict[str, dict[str, str]]:
+def build_class_lookup(
+    imagefolder_root: Path, splits: list[str]
+) -> dict[str, dict[str, str]]:
     """ImageFolder 구조에서 {split: {image_stem → class_name}} 매핑을 빌드한다.
 
     ImageFolder 내 크롭 파일명은 `{original_stem}_{crop_idx}` 형태를 가정한다.
@@ -292,7 +294,9 @@ def build_class_lookup(imagefolder_root: Path, splits: list[str]) -> dict[str, d
         for stem in conflicts:
             del mapping[stem]
         if conflicts:
-            print(f"[경고] {split}: 이미지 1장에 여러 클래스 충돌 {len(conflicts)}건 — 제외됨")
+            print(
+                f"[경고] {split}: 이미지 1장에 여러 클래스 충돌 {len(conflicts)}건 — 제외됨"
+            )
         result[split] = mapping
     return result
 
@@ -398,8 +402,12 @@ def main() -> None:
             for split, mapping in class_lookup.items():
                 print(f"[class_lookup] {split}: {len(mapping)}개 이미지 매핑")
         crop_from_gt(
-            Path(args.labels), Path(args.images), output, args.splits,
-            args.padding, class_lookup,
+            Path(args.labels),
+            Path(args.images),
+            output,
+            args.splits,
+            args.padding,
+            class_lookup,
         )
     else:
         parser.error("--predictions, --labels, --imagefolder 중 하나를 지정하세요")

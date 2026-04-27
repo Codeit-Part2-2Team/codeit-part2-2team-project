@@ -45,11 +45,14 @@ def test_classes_sorted_from_manifest(tmp_path):
     for p in [img_a, img_b, img_c]:
         _make_image(p)
 
-    _write_manifest(tmp_path, [
-        {"crop_path": str(img_b), "class_name": "beta"},
-        {"crop_path": str(img_a), "class_name": "alpha"},
-        {"crop_path": str(img_c), "class_name": "gamma"},
-    ])
+    _write_manifest(
+        tmp_path,
+        [
+            {"crop_path": str(img_b), "class_name": "beta"},
+            {"crop_path": str(img_a), "class_name": "alpha"},
+            {"crop_path": str(img_c), "class_name": "gamma"},
+        ],
+    )
 
     ds = Stage2Dataset(tmp_path, _MIN_CFG, split="train")
 
@@ -64,10 +67,13 @@ def test_external_classes_overrides_manifest_order(tmp_path):
     for p in [img_a, img_b]:
         _make_image(p)
 
-    _write_manifest(tmp_path, [
-        {"crop_path": str(img_a), "class_name": "alpha"},
-        {"crop_path": str(img_b), "class_name": "beta"},
-    ])
+    _write_manifest(
+        tmp_path,
+        [
+            {"crop_path": str(img_a), "class_name": "alpha"},
+            {"crop_path": str(img_b), "class_name": "beta"},
+        ],
+    )
 
     # train 기준 classes: beta=0, alpha=1 (역순)
     train_classes = ["beta", "alpha"]
@@ -87,20 +93,26 @@ def test_train_val_index_alignment(tmp_path):
     train_imgs = [train_dir / f"{c}.jpg" for c in ["alpha", "beta", "gamma"]]
     for p in train_imgs:
         _make_image(p)
-    _write_manifest(train_dir, [
-        {"crop_path": str(train_dir / "alpha.jpg"), "class_name": "alpha"},
-        {"crop_path": str(train_dir / "beta.jpg"), "class_name": "beta"},
-        {"crop_path": str(train_dir / "gamma.jpg"), "class_name": "gamma"},
-    ])
+    _write_manifest(
+        train_dir,
+        [
+            {"crop_path": str(train_dir / "alpha.jpg"), "class_name": "alpha"},
+            {"crop_path": str(train_dir / "beta.jpg"), "class_name": "beta"},
+            {"crop_path": str(train_dir / "gamma.jpg"), "class_name": "gamma"},
+        ],
+    )
 
     # val: beta, gamma만 있음 (alpha 없음 → 독립 구성 시 beta=0, gamma=1로 밀림)
     val_imgs = [val_dir / f"{c}.jpg" for c in ["beta", "gamma"]]
     for p in val_imgs:
         _make_image(p)
-    _write_manifest(val_dir, [
-        {"crop_path": str(val_dir / "beta.jpg"), "class_name": "beta"},
-        {"crop_path": str(val_dir / "gamma.jpg"), "class_name": "gamma"},
-    ])
+    _write_manifest(
+        val_dir,
+        [
+            {"crop_path": str(val_dir / "beta.jpg"), "class_name": "beta"},
+            {"crop_path": str(val_dir / "gamma.jpg"), "class_name": "gamma"},
+        ],
+    )
 
     train_ds = Stage2Dataset(train_dir, _MIN_CFG, split="train")
     val_ds = Stage2Dataset(val_dir, _MIN_CFG, split="val", classes=train_ds.classes)
@@ -116,10 +128,13 @@ def test_val_only_classes_filtered_out(tmp_path):
     _make_image(img_known)
     _make_image(img_unknown)
 
-    _write_manifest(tmp_path, [
-        {"crop_path": str(img_known), "class_name": "beta"},
-        {"crop_path": str(img_unknown), "class_name": "delta"},  # train에 없음
-    ])
+    _write_manifest(
+        tmp_path,
+        [
+            {"crop_path": str(img_known), "class_name": "beta"},
+            {"crop_path": str(img_unknown), "class_name": "delta"},  # train에 없음
+        ],
+    )
 
     train_classes = ["alpha", "beta", "gamma"]
     ds = Stage2Dataset(tmp_path, _MIN_CFG, split="val", classes=train_classes)
@@ -133,11 +148,14 @@ def test_records_without_class_name_skipped(tmp_path):
     img = tmp_path / "a.jpg"
     _make_image(img)
 
-    _write_manifest(tmp_path, [
-        {"crop_path": str(img), "class_name": "alpha"},
-        {"crop_path": str(img)},  # class_name 없음
-        {"crop_path": str(img), "class_name": ""},  # 빈 문자열
-    ])
+    _write_manifest(
+        tmp_path,
+        [
+            {"crop_path": str(img), "class_name": "alpha"},
+            {"crop_path": str(img)},  # class_name 없음
+            {"crop_path": str(img), "class_name": ""},  # 빈 문자열
+        ],
+    )
 
     ds = Stage2Dataset(tmp_path, _MIN_CFG, split="train")
 
@@ -157,11 +175,14 @@ def test_get_sample_weights_inverse_frequency(tmp_path):
         _make_image(p)
 
     # alpha 2개, beta 1개
-    _write_manifest(tmp_path, [
-        {"crop_path": str(imgs[0]), "class_name": "alpha"},
-        {"crop_path": str(imgs[1]), "class_name": "alpha"},
-        {"crop_path": str(imgs[2]), "class_name": "beta"},
-    ])
+    _write_manifest(
+        tmp_path,
+        [
+            {"crop_path": str(imgs[0]), "class_name": "alpha"},
+            {"crop_path": str(imgs[1]), "class_name": "alpha"},
+            {"crop_path": str(imgs[2]), "class_name": "beta"},
+        ],
+    )
 
     ds = Stage2Dataset(tmp_path, _MIN_CFG, split="train")
     weights = ds.get_sample_weights()

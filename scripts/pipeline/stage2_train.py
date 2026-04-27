@@ -25,7 +25,9 @@ from src.utils.config import load_config
 from src.utils.timing import exp_dir_from_cfg, timed
 
 
-def _print_dataset_summary(train_ds: "Stage2Dataset", val_ds: "Stage2Dataset", cfg: dict) -> None:
+def _print_dataset_summary(
+    train_ds: "Stage2Dataset", val_ds: "Stage2Dataset", cfg: dict
+) -> None:
     cfg_nc = cfg["model"]["num_classes"]
     train_nc = len(train_ds.classes)
     val_nc = len(val_ds.classes)

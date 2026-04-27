@@ -299,9 +299,7 @@ def test_fit_resume_restores_epoch_and_state(
     assert any("resumed from epoch" in line for line in printed)
 
 
-def test_fit_resume_epoch_range(
-    fake_timm, sample_stage2_config, tmp_path
-):
+def test_fit_resume_epoch_range(fake_timm, sample_stage2_config, tmp_path):
     """resume 시 전체 epochs 중 이미 완료한 epoch을 건너뛰고 나머지만 학습한다."""
     sample_stage2_config["output"]["project"] = str(tmp_path)
     sample_stage2_config["train"]["warmup_epochs"] = 0
@@ -326,7 +324,9 @@ def test_fit_resume_epoch_range(
     sample_stage2_config["train"]["epochs"] = 4
     classifier2 = Classifier(sample_stage2_config)
     classifier2.model = nn.Linear(4, 3)
-    classifier2.fit(loader, loader, resume_from=tmp_path / "test_stage2" / "weights" / "last.pt")
+    classifier2.fit(
+        loader, loader, resume_from=tmp_path / "test_stage2" / "weights" / "last.pt"
+    )
 
     final_ckpt = torch.load(
         tmp_path / "test_stage2" / "weights" / "last.pt",
