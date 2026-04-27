@@ -79,6 +79,7 @@ def load_s2_best_metrics(best_pt_path: Path) -> dict | None:
     Returns:
         {"epoch", "top1_acc", "top5_acc", "n_classes"} 또는 None
     """
+    # torch lazy-imported to keep report usable without GPU env
     import torch
 
     best_pt_path = Path(best_pt_path)

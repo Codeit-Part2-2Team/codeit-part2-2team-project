@@ -24,22 +24,22 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import re as _re
+
 from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
 
-sys.path.insert(
-    0,
-    str(
-        next(
-            p
-            for p in Path(__file__).resolve().parents
-            if (p / "requirements.txt").exists()
-        )
-    ),
+root = next(
+    (p for p in Path(__file__).resolve().parents if (p / "requirements.txt").exists()),
+    None,
 )
+
+if root is None:
+    raise RuntimeError("project root (requirements.txt) not found")
+sys.path.insert(0, str(root))
 
 from scripts.pipeline.crop import _extract_class_name
 
@@ -195,7 +195,6 @@ def _normalize(name: str) -> str:
 
 def _build_class_lookup(crops_root: Path) -> dict[str, str]:
     """train/val crops_manifest.json에서 {추출된_파일명_키 → class_name} 빌드."""
-    import re as _re
 
     lookup: dict[str, str] = {}
     for split in ("train", "val"):

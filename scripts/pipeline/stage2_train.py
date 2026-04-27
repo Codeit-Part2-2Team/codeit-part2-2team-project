@@ -36,7 +36,11 @@ def _print_dataset_summary(
     test_part = ""
     if test_dir.exists():
         test_classes = [d for d in test_dir.iterdir() if d.is_dir()]
-        test_samples = sum(len(list(d.iterdir())) for d in test_classes)
+        _IMG_EXTS = {".jpg", ".jpeg", ".png"}
+        test_samples = sum(
+            sum(1 for f in d.iterdir() if f.suffix.lower() in _IMG_EXTS)
+            for d in test_classes
+        )
         test_part = f"  test={test_samples} ({len(test_classes)} cls)"
 
     nc_match = "OK" if cfg_nc == train_nc else "MISMATCH"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 from importlib import import_module
 from pathlib import Path
@@ -47,8 +48,8 @@ class Classifier:
             # 저장된 클래스 수와 현재 모델이 다르면 모델을 재빌드
             actual_nc = len(self.class_names)
             if actual_nc and actual_nc != self.cfg["model"]["num_classes"]:
+                self.cfg = copy.deepcopy(self.cfg)
                 self.cfg["model"]["num_classes"] = actual_nc
-                self.cfg["nc"] = actual_nc
                 self.model = self._build_model().to(self.device)
         else:
             state_dict = checkpoint
@@ -231,6 +232,12 @@ class Classifier:
 
         if resume_from is not None:
             ckpt = torch.load(resume_from, map_location="cpu", weights_only=False)
+            ckpt_classes = ckpt.get("class_names", [])
+            if ckpt_classes and len(ckpt_classes) != self.cfg["model"]["num_classes"]:
+                raise ValueError(
+                    f"resume checkpoint has {len(ckpt_classes)} classes, "
+                    f"current model expects {self.cfg['model']['num_classes']}"
+                )
             self.model.load_state_dict(ckpt["model_state_dict"])
             optimizer.load_state_dict(ckpt["optimizer_state_dict"])
             if "scheduler_state_dict" in ckpt:

@@ -44,16 +44,14 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(
-    0,
-    str(
-        next(
-            p
-            for p in Path(__file__).resolve().parents
-            if (p / "requirements.txt").exists()
-        )
-    ),
+root = next(
+    (p for p in Path(__file__).resolve().parents if (p / "requirements.txt").exists()),
+    None,
 )
+
+if root is None:
+    raise RuntimeError("project root (requirements.txt) not found")
+sys.path.insert(0, str(root))
 
 from PIL import Image
 
@@ -172,7 +170,8 @@ def crop_from_gt(
             if not lines:
                 continue
 
-            img = Image.open(img_path).convert("RGB")
+            with Image.open(img_path) as raw:
+                img = raw.convert("RGB")
             W, H = img.size
 
             for idx, line in enumerate(lines):
@@ -301,7 +300,7 @@ def build_class_lookup(
     return result
 
 
-def _extract_class_name(stem: str) -> str:
+def extract_class_name(stem: str) -> str:
     """파일명 stem에서 약품 클래스명을 추출한다."""
     if stem.startswith("ext_"):
         stem = stem[4:]

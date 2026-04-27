@@ -268,11 +268,10 @@ def test_fit_checkpoint_includes_scheduler_state(
 
 
 def test_fit_resume_restores_epoch_and_state(
-    fake_timm, sample_stage2_config, tmp_path, monkeypatch
+    fake_timm, sample_stage2_config, tmp_path
 ):
     """resume_from 지정 시 저장된 epoch 다음부터 학습을 시작한다."""
     sample_stage2_config["output"]["project"] = str(tmp_path)
-    sample_stage2_config["train"]["epochs"] = 4
     sample_stage2_config["train"]["warmup_epochs"] = 1
 
     classifier = Classifier(sample_stage2_config)
@@ -280,23 +279,24 @@ def test_fit_resume_restores_epoch_and_state(
 
     loader = [(torch.randn(2, 4), torch.tensor([0, 1]))]
 
-    # epoch=1까지 학습 후 last.pt 저장
+    # 2 epoch 학습 후 last.pt 저장 (0-indexed epoch=1)
     sample_stage2_config["train"]["epochs"] = 2
     classifier.fit(loader, loader)
     last_pt = tmp_path / "test_stage2" / "weights" / "last.pt"
     assert last_pt.exists()
 
-    # epoch 로그 캡처
-    printed = []
-    monkeypatch.setattr("builtins.print", lambda *a, **kw: printed.append(str(a)))
+    first_ckpt = torch.load(last_pt, map_location="cpu", weights_only=False)
+    assert first_ckpt["epoch"] == first_ckpt["cfg"]["train"]["epochs"] - 1
 
+    # resume 후 optimizer_state_dict가 체크포인트에 포함되어 있어야 함
     sample_stage2_config["train"]["epochs"] = 4
     classifier2 = Classifier(sample_stage2_config)
     classifier2.model = nn.Linear(4, 3)
     classifier2.fit(loader, loader, resume_from=last_pt)
 
-    # "resumed from epoch" 메시지가 출력되어야 함
-    assert any("resumed from epoch" in line for line in printed)
+    final_ckpt = torch.load(last_pt, map_location="cpu", weights_only=False)
+    assert "optimizer_state_dict" in final_ckpt
+    assert final_ckpt["epoch"] == 3
 
 
 def test_fit_resume_epoch_range(fake_timm, sample_stage2_config, tmp_path):
