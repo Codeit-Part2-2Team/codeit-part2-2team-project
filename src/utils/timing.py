@@ -26,7 +26,7 @@ def exp_dir_from_cfg(cfg: dict) -> Path:
 
 def record_time(exp_dir: Path | str, key: str, elapsed: float) -> None:
     path = Path(exp_dir) / "timings.json"
-    timings = json.loads(path.read_text()) if path.exists() else {}
+    timings = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     timings[key] = round(elapsed, 1)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(timings, ensure_ascii=False, indent=2))

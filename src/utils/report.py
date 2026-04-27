@@ -71,3 +71,25 @@ def load_s1_best_metrics(results_csv: Path) -> dict | None:
         "precision": float(r["metrics/precision(B)"]),
         "recall": float(r["metrics/recall(B)"]),
     }
+
+
+def load_s2_best_metrics(best_pt_path: Path) -> dict | None:
+    """Stage 2 best.pt 체크포인트에서 지표 반환. 파일 없으면 None.
+
+    Returns:
+        {"epoch", "top1_acc", "top5_acc", "n_classes"} 또는 None
+    """
+    # torch lazy-imported to keep report usable without GPU env
+    import torch
+
+    best_pt_path = Path(best_pt_path)
+    if not best_pt_path.exists():
+        return None
+    ckpt = torch.load(best_pt_path, map_location="cpu", weights_only=False)
+    metrics = ckpt.get("metrics", {})
+    return {
+        "epoch": int(ckpt.get("epoch", -1)) + 1,
+        "top1_acc": float(metrics.get("top1_acc", 0.0)),
+        "top5_acc": float(metrics.get("top5_acc", 0.0)),
+        "n_classes": len(ckpt.get("class_names", [])),
+    }

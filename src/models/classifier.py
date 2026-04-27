@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 from importlib import import_module
 from pathlib import Path
@@ -10,7 +11,7 @@ from typing import Any
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 from PIL import Image
 
 from src.utils.config import fix_seed, load_config, validate_config
@@ -47,8 +48,8 @@ class Classifier:
             # 저장된 클래스 수와 현재 모델이 다르면 모델을 재빌드
             actual_nc = len(self.class_names)
             if actual_nc and actual_nc != self.cfg["model"]["num_classes"]:
+                self.cfg = copy.deepcopy(self.cfg)
                 self.cfg["model"]["num_classes"] = actual_nc
-                self.cfg["nc"] = actual_nc
                 self.model = self._build_model().to(self.device)
         else:
             state_dict = checkpoint
@@ -80,7 +81,7 @@ class Classifier:
         workers = cfg["data"]["workers"]
 
         train_ds = Stage2Dataset(train_dir, cfg, split="train")
-        val_ds = Stage2Dataset(val_dir, cfg, split="val")
+        val_ds = Stage2Dataset(val_dir, cfg, split="val", classes=train_ds.classes)
 
         actual_nc = len(train_ds.classes)
         cfg_nc = self.cfg["model"]["num_classes"]
@@ -92,8 +93,13 @@ class Classifier:
             )
         self.class_names = train_ds.classes
 
+        sampler = WeightedRandomSampler(
+            weights=train_ds.get_sample_weights(),
+            num_samples=len(train_ds),
+            replacement=True,
+        )
         train_loader = DataLoader(
-            train_ds, batch_size=batch, shuffle=True, num_workers=workers
+            train_ds, batch_size=batch, sampler=sampler, num_workers=workers
         )
         val_loader = DataLoader(
             val_ds, batch_size=batch, shuffle=False, num_workers=workers
@@ -114,6 +120,11 @@ class Classifier:
         image_files = sorted(
             p for p in source.iterdir() if p.suffix.lower() in _IMAGE_EXTENSIONS
         )
+        # ImageFolder 구조(class_name/ 하위) 대응: 최상위에 이미지가 없으면 재귀 탐색
+        if not image_files:
+            image_files = sorted(
+                p for p in source.rglob("*") if p.suffix.lower() in _IMAGE_EXTENSIONS
+            )
 
         dataset = _InferenceDataset(image_files, manifest, self.cfg)
         loader = DataLoader(
@@ -133,7 +144,9 @@ class Classifier:
     # Low-level interface
     # ------------------------------------------------------------------
 
-    def fit(self, train_loader, val_loader) -> dict:
+    def fit(
+        self, train_loader, val_loader, resume_from: str | Path | None = None
+    ) -> dict:
         """학습 루프 실행 후 best val 지표를 반환한다.
 
         Returns:
@@ -212,11 +225,32 @@ class Classifier:
         weights_dir = Path(out_cfg["project"]) / out_cfg["name"] / "weights"
         weights_dir.mkdir(parents=True, exist_ok=True)
 
+        start_epoch = 0
         best_top1 = 0.0
         best_metrics: dict = {"top1_acc": 0.0, "top5_acc": 0.0}
         last_metrics: dict = best_metrics
 
-        for epoch in range(epochs):
+        if resume_from is not None:
+            ckpt = torch.load(resume_from, map_location="cpu", weights_only=False)
+            ckpt_classes = ckpt.get("class_names", [])
+            if ckpt_classes and len(ckpt_classes) != self.cfg["model"]["num_classes"]:
+                raise ValueError(
+                    f"resume checkpoint has {len(ckpt_classes)} classes, "
+                    f"current model expects {self.cfg['model']['num_classes']}"
+                )
+            self.model.load_state_dict(ckpt["model_state_dict"])
+            optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+            if "scheduler_state_dict" in ckpt:
+                scheduler.load_state_dict(ckpt["scheduler_state_dict"])
+            start_epoch = int(ckpt["epoch"]) + 1
+            best_top1 = ckpt["metrics"].get("top1_acc", 0.0)
+            best_metrics = ckpt["metrics"]
+            self.class_names = list(ckpt.get("class_names", self.class_names))
+            print(
+                f"resumed from epoch {start_epoch}/{epochs}  best_top1={best_top1:.4f}"
+            )
+
+        for epoch in range(start_epoch, epochs):
             self.model.train()
             for images, labels in train_loader:
                 images, labels = images.to(self.device), labels.to(self.device)
@@ -235,7 +269,7 @@ class Classifier:
                 best_metrics = last_metrics
                 marker = "  ✓ best"
                 torch.save(
-                    self._checkpoint(epoch, optimizer, last_metrics),
+                    self._checkpoint(epoch, optimizer, scheduler, last_metrics),
                     weights_dir / "best.pt",
                 )
             print(
@@ -244,7 +278,7 @@ class Classifier:
             )
 
         torch.save(
-            self._checkpoint(epochs - 1, optimizer, last_metrics),
+            self._checkpoint(epochs - 1, optimizer, scheduler, last_metrics),
             weights_dir / "last.pt",
         )
         return best_metrics
@@ -339,11 +373,12 @@ class Classifier:
             num_classes=int(model_cfg["num_classes"]),
         )
 
-    def _checkpoint(self, epoch: int, optimizer, metrics: dict) -> dict:
+    def _checkpoint(self, epoch: int, optimizer, scheduler, metrics: dict) -> dict:
         return {
             "epoch": epoch,
             "model_state_dict": self.model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
+            "scheduler_state_dict": scheduler.state_dict(),
             "metrics": metrics,
             "class_names": self.class_names,
             "cfg": self.cfg,

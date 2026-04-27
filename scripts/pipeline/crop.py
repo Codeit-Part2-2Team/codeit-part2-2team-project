@@ -36,6 +36,8 @@
         --splits      train val
 """
 
+from PIL import Image
+from src.utils.timing import timed
 from __future__ import annotations
 
 import argparse
@@ -44,20 +46,18 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(
-    0,
-    str(
-        next(
-            p
-            for p in Path(__file__).resolve().parents
-            if (p / "requirements.txt").exists()
-        )
-    ),
+root = next(
+    (p for p in Path(__file__).resolve().parents if (p / "requirements.txt").exists()),
+    None,
 )
 
-from PIL import Image
+if root is None:
+    raise RuntimeError("project root (requirements.txt) not found")
+sys.path.insert(0, str(root))
 
-from src.utils.timing import timed
+
+
+
 
 _IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"]
 
@@ -130,8 +130,13 @@ def crop_from_gt(
     output_dir: Path,
     splits: list[str],
     padding: float = 0.05,
+    class_lookup: dict[str, dict[str, str]] | None = None,
 ) -> None:
-    """GT YOLO label txt → flat 크롭 + crops_manifest.json (class_name 포함)."""
+    """GT YOLO label txt → flat 크롭 + crops_manifest.json (class_name 포함).
+
+    class_lookup: {split: {image_stem: class_name}} 형태로 전달하면
+    파일명 파싱 대신 해당 매핑에서 class_name을 가져온다.
+    """
     for split in splits:
         label_dir = labels_dir / split
         image_dir = images_dir / split
@@ -145,10 +150,18 @@ def crop_from_gt(
         manifest: list[dict] = []
         total, skipped = 0, 0
         class_counts: dict[str, int] = {}
+        split_lookup = (class_lookup or {}).get(split, {})
 
         for label_file in sorted(label_dir.glob("*.txt")):
             stem = label_file.stem
-            class_name = _extract_class_name(stem)
+
+            if split_lookup:
+                class_name = split_lookup.get(stem)
+                if class_name is None:
+                    skipped += 1
+                    continue
+            else:
+                class_name = extract_class_name(stem)
 
             img_path = _find_image(image_dir, stem)
             if img_path is None:
@@ -159,7 +172,8 @@ def crop_from_gt(
             if not lines:
                 continue
 
-            img = Image.open(img_path).convert("RGB")
+            with Image.open(img_path) as raw:
+                img = raw.convert("RGB")
             W, H = img.size
 
             for idx, line in enumerate(lines):
@@ -252,7 +266,43 @@ def convert_from_imagefolder(
         )
 
 
-def _extract_class_name(stem: str) -> str:
+def build_class_lookup(
+    imagefolder_root: Path, splits: list[str]
+) -> dict[str, dict[str, str]]:
+    """ImageFolder 구조에서 {split: {image_stem → class_name}} 매핑을 빌드한다.
+
+    ImageFolder 내 크롭 파일명은 `{original_stem}_{crop_idx}` 형태를 가정한다.
+    """
+    result: dict[str, dict[str, str]] = {}
+    for split in splits:
+        split_dir = imagefolder_root / split
+        if not split_dir.exists():
+            continue
+        mapping: dict[str, str] = {}
+        conflicts: set[str] = set()
+        for class_dir in sorted(split_dir.iterdir()):
+            if not class_dir.is_dir():
+                continue
+            class_name = class_dir.name
+            for img_path in sorted(class_dir.iterdir()):
+                if img_path.suffix.lower() not in {".jpg", ".jpeg", ".png"}:
+                    continue
+                original_stem = re.sub(r"_\d+$", "", img_path.stem)
+                if original_stem in mapping and mapping[original_stem] != class_name:
+                    conflicts.add(original_stem)
+                else:
+                    mapping[original_stem] = class_name
+        for stem in conflicts:
+            del mapping[stem]
+        if conflicts:
+            print(
+                f"[경고] {split}: 이미지 1장에 여러 클래스 충돌 {len(conflicts)}건 — 제외됨"
+            )
+        result[split] = mapping
+    return result
+
+
+def extract_class_name(stem: str) -> str:
     """파일명 stem에서 약품 클래스명을 추출한다."""
     if stem.startswith("ext_"):
         stem = stem[4:]
@@ -327,7 +377,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if args.imagefolder:
+    if args.imagefolder and not args.labels:
         convert_from_imagefolder(Path(args.imagefolder), args.splits)
         return
 
@@ -347,8 +397,18 @@ def main() -> None:
     elif args.labels:
         if not args.images:
             parser.error("gt 모드: --images 가 필요합니다")
+        class_lookup = None
+        if args.imagefolder:
+            class_lookup = build_class_lookup(Path(args.imagefolder), args.splits)
+            for split, mapping in class_lookup.items():
+                print(f"[class_lookup] {split}: {len(mapping)}개 이미지 매핑")
         crop_from_gt(
-            Path(args.labels), Path(args.images), output, args.splits, args.padding
+            Path(args.labels),
+            Path(args.images),
+            output,
+            args.splits,
+            args.padding,
+            class_lookup,
         )
     else:
         parser.error("--predictions, --labels, --imagefolder 중 하나를 지정하세요")

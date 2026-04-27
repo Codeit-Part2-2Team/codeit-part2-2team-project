@@ -66,11 +66,14 @@ def predictions_to_df(
     annotation_id = 1
     for item in predictions:
         raw_image_id = item["image_id"]
-        image_id = (
-            image_id_map.get(raw_image_id, raw_image_id)
-            if image_id_map
-            else raw_image_id
-        )
+        if image_id_map is not None:
+            mapped = image_id_map.get(raw_image_id)
+            if mapped is None:
+                raise KeyError(f"image_id_map에 없는 image_id: {raw_image_id!r}")
+            image_id = mapped
+        else:
+            image_id = raw_image_id
+
         for det in item["detections"]:
             x1, y1, x2, y2 = det["bbox"]
             if class_map is not None:
