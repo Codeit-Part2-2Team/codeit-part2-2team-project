@@ -26,6 +26,7 @@ sys.path.insert(
 from src.models.model_yolo import YOLOModel
 from src.models.predictor import Predictor
 from src.utils.path import resolve_weights_path, resolve_predictions_path
+from src.utils.timing import exp_dir_from_cfg, timed
 
 
 def main():
@@ -62,7 +63,8 @@ def main():
     # 우선순위: CLI --tta > config val.tta
     tta = args.tta or cfg["val"].get("tta", False)
 
-    predictions = Predictor(model).predict(args.source, output=output, tta=tta)
+    with timed(exp_dir_from_cfg(cfg), "s1_predict"):
+        predictions = Predictor(model).predict(args.source, output=output, tta=tta)
     print(f"완료: {len(predictions)}개 이미지 → {output}")
 
 

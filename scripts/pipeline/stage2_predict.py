@@ -19,6 +19,7 @@ sys.path.insert(
 
 from src.models.classifier import Classifier
 from src.utils.config import load_config
+from src.utils.timing import exp_dir_from_cfg, timed
 
 
 def main() -> None:
@@ -37,7 +38,8 @@ def main() -> None:
     output = args.output or _resolve_output(cfg)
 
     classifier = Classifier(cfg).load_weights(weights)
-    results = classifier.predict(source=args.source, output=output)
+    with timed(exp_dir_from_cfg(cfg), "s2_predict"):
+        results = classifier.predict(source=args.source, output=output)
     print(f"추론 완료: {len(results)}개 → {output}")
 
 

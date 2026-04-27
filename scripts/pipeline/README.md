@@ -400,7 +400,7 @@ python scripts/pipeline/run_predict.py \
 **코드:**
 ```bash
 python scripts/pipeline/crop.py \
-    --predictions experiments/exp_20260420_baseline_yolo26n/val_predictions.json \
+    --predictions experiments/exp_20260420_baseline_yolo26n/results/predictions.json \
     --source      data/processed/images/val/ \
     --output      experiments/exp_20260420_baseline_yolo26n/stage1_crops/ \
     --padding     0.05
@@ -519,10 +519,10 @@ data/processed/crops/
 #### Mode 2: `crop_from_predictions()` - Inference Crop 생성
 ```bash
 python scripts/pipeline/crop.py \
-    --predictions experiments/{EXP}/val_predictions.json \  # Stage 1 결과
-    --source      data/processed/images/val/ \              # 원본 이미지
-    --output      experiments/{EXP}/stage1_crops/           # 출력
-    --padding     0.05                                      # 여백
+    --predictions experiments/{EXP}/results/predictions.json \  # Stage 1 결과
+    --source      data/processed/images/val/ \                  # 원본 이미지
+    --output      experiments/{EXP}/stage1_crops/               # 출력
+    --padding     0.05                                          # 여백
 ```
 
 **입력:**
@@ -654,6 +654,35 @@ python scripts/pipeline/stage2_predict.py \
   "score": 0.92
 }
 ```
+---
+
+### 6. `evaluate_pipeline.py` - End-to-end mAP 평가
+
+```bash
+python scripts/pipeline/evaluate_pipeline.py \
+    --gt-labels data/processed/labels/val \
+    --gt-images data/processed/images/val \
+    --s1-crops  experiments/{EXP}/stage1_crops/crops_manifest.json \
+    --s2-preds  experiments/{EXP}/stage2_predictions.json
+
+# 클래스별 AP 상위 20개 추가 출력
+python scripts/pipeline/evaluate_pipeline.py ... --per-class
+```
+
+**출력:**
+```
+GT     : 497장  547개 객체
+Pred   : 547개 / 44클래스 평가
+mAP@[0.50:0.95] : 0.xxxx  (COCO)
+mAP@[0.75:0.95] : 0.xxxx  (Kaggle 평가지표)
+mAP@0.50        : 0.xxxx
+mAP@0.75        : 0.xxxx
+```
+
+**주의:**
+- GT class는 파일명에서 자동 추출 (`_extract_class_name` 정규화)
+- 파일명에 약품명이 없는 iOS/IMG 이미지는 `known_classes` 필터로 자동 제외
+- score = `det_score × cls_score` (crops_manifest × stage2_predictions)
 
 ---
 
@@ -669,19 +698,25 @@ python scripts/pipeline/stage2_predict.py \
    → experiments/stage2_classifier/.../best.pt
 
 3️⃣ Stage 1 추론
-   run_predict.py
-   → experiments/{EXP}/val_predictions.json
+   predict.py
+   → experiments/{EXP}/results/predictions.json
 
 4️⃣ Inference Crop 생성
-   crop_from_predictions()
-   → experiments/{EXP}/stage1_crops/
+   crop.py (inference 모드)
+   → experiments/{EXP}/stage1_crops/ + crops_manifest.json
 
 5️⃣ Stage 2 추론
    stage2_predict.py
    → experiments/{EXP}/stage2_predictions.json
 
-6️⃣ 최종 결과
-   {이미지, 위치(bbox), 약품명, 신뢰도}
+6️⃣ [선택] End-to-end mAP 평가
+   evaluate_pipeline.py
+   → mAP@[0.50:0.95], mAP@[0.75:0.95] 출력
+
+7️⃣ Kaggle 제출 CSV 생성
+   make_submission.py --class-map kaggle_class_map.json
+   → submissions/submission.csv
+      score = det_score × cls_score
 ```
 
 ---

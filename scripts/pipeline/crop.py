@@ -57,6 +57,8 @@ sys.path.insert(
 
 from PIL import Image
 
+from src.utils.timing import timed
+
 _IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"]
 
 
@@ -337,9 +339,10 @@ def main() -> None:
     if args.predictions:
         if not args.source:
             parser.error("inference 모드: --source 가 필요합니다")
-        manifest = crop_from_predictions(
-            args.predictions, args.source, output, args.padding
-        )
+        with timed(output.parent, "crop"):
+            manifest = crop_from_predictions(
+                args.predictions, args.source, output, args.padding
+            )
         print(f"크롭 완료: {len(manifest)}개 → {output}")
     elif args.labels:
         if not args.images:
