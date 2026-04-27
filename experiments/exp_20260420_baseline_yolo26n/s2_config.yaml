@@ -18,10 +18,10 @@ data:
   description: "Stage 2 분류기용 bbox 크롭 이미지"
 
 train:
-  epochs: 30
+  epochs: 100
   batch: 32
   optimizer: AdamW
-  lr0: 0.001
+  lr0: 0.0001
   lrf: 0.01
   weight_decay: 0.01
   warmup_epochs: 3
@@ -40,11 +40,6 @@ albumentations:
   gaussian_blur:
     p: 0.2
     blur_limit: [3, 5]
-  bbox_jitter:
-    p: 0.5
-    shift_limit: 0.03
-    scale_limit: 0.05
-    rotate_limit: 5
 
 val:
   top_k: [1, 5]
