@@ -99,9 +99,7 @@ def predictions_to_df(
                 )
                 if category_id is None:
                     if strict_class_map:
-                        raise KeyError(
-                            f"class_map에 없는 class_name: {class_name!r}"
-                        )
+                        raise KeyError(f"class_map에 없는 class_name: {class_name!r}")
                     skipped_unknown_classes[class_name] = (
                         skipped_unknown_classes.get(class_name, 0) + 1
                     )

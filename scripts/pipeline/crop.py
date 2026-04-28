@@ -35,10 +35,9 @@
         --imagefolder data/processed/crops \\
         --splits      train val
 """
-
+from __future__ import annotations
 from PIL import Image
 from src.utils.timing import timed
-from __future__ import annotations
 
 import argparse
 import json
@@ -54,9 +53,6 @@ root = next(
 if root is None:
     raise RuntimeError("project root (requirements.txt) not found")
 sys.path.insert(0, str(root))
-
-
-
 
 
 _IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"]
