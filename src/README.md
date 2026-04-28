@@ -375,3 +375,20 @@ model.export(format="onnx")
 - PEP 8 준수 (`ruff`, `black` 자동 포맷)
 - 모든 public 함수·클래스에 docstring 작성
 - 예외 처리 포함 필수
+
+---
+
+## Submission Merge Contract
+
+`src.utils.submission.merge_predictions()`의 join key는 `crop_id`이다.
+
+Inference 제출 경로에서는 Stage 2가 crop 파일(`1_0.jpg`, `1_1.jpg`)을 분류하더라도 최종 제출 row는 원본 test image(`1.jpg`)에 귀속되어야 한다. 그래서 병합 시:
+
+- class 정보는 `stage2_predictions.json`의 `class_name`, `class_id`, `score`를 사용한다.
+- bbox와 원본 `image_id`는 inference `crops_manifest.json`의 `bbox`, `image_id`를 사용한다.
+- `score`는 `manifest.score * stage2.score`로 계산한다.
+- `class_map`을 넘겼는데 `class_name`이 없으면 기본적으로 해당 detection을 제외한다.
+- `unknown_class_map`을 넘기면 map 밖 `class_name`을 Kaggle class name 또는 category_id로 치환한다.
+- `strict_class_map=True`이면 map에 없는 `class_name`에서 `KeyError`를 발생시킨다.
+
+예: `crop_id=1_0`, `crop_id=1_1` 두 예측은 둘 다 manifest의 `image_id=1`로 제출된다.
