@@ -37,10 +37,9 @@
         --imagefolder data/processed/crops \\
         --splits      train val
 """
-
+from __future__ import annotations
 from PIL import Image
 from src.utils.timing import timed
-from __future__ import annotations
 
 import argparse
 import json
