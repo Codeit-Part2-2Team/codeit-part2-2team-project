@@ -269,7 +269,19 @@ def plot_pipeline_overlay(
         print("⚠️  탐지 2개 이상인 이미지가 없습니다")
         return
 
-    sample_ids = random.sample(list(multi.keys()), min(n, len(multi)))
+    available_ids = [img_id for img_id in multi if _find_image(img_dir, img_id)]
+    missing_count = len(multi) - len(available_ids)
+    if missing_count:
+        print(f"⚠️  원본 이미지를 찾지 못한 multi 이미지: {missing_count}개")
+    if not available_ids:
+        example_keys = list(multi.keys())[:5]
+        example_files = [p.name for p in sorted(img_dir.iterdir())[:5] if p.is_file()]
+        print(f"⚠️  overlay할 수 있는 이미지가 없습니다: {img_dir}")
+        print(f"   pipeline image_id 예시: {example_keys}")
+        print(f"   image file 예시: {example_files}")
+        return
+
+    sample_ids = random.sample(available_ids, min(n, len(available_ids)))
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
     for ax, img_id in zip(axes.flatten(), sample_ids):
