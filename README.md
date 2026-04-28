@@ -82,7 +82,11 @@ conda create -n codeit-part2-2team-project python=3.10 -y
 conda activate codeit-part2-2team-project
 
 pip install -r requirements.txt
+pip install -e .
 ```
+
+`pip install -e .`는 개발 중인 현재 프로젝트를 Python 환경에 등록합니다.
+노트북 또는 다른 작업 디렉터리에서 실행해도 `from src...` import를 안정적으로 사용할 수 있습니다.
 
 ### 데이터 배치
 
