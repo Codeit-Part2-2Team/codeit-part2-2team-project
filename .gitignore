@@ -41,6 +41,7 @@ data/external/
 
 # 어노테이션 (포맷 확정 후 필요 시 예외 추가)
 *.json
+!kaggle_class_map.json
 !experiments/**/config.yaml
 !src/**/*.yaml
 !scripts/**/*.yaml
