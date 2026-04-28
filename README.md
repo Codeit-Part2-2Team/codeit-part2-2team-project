@@ -34,7 +34,7 @@ Stage 1 - Detection (YOLO)
 Stage 2 - Classification
   입력: Stage 1 bbox 기반 크롭 이미지
   모델: ResNet50 → EfficientNet-B2 → EfficientNetV2-S
-  출력: 브랜드명 분류 (319 클래스)
+  출력: 브랜드명 분류 (371 클래스)
 ```
 
 > 학습 시 GT bbox 기준 크롭 / 추론 시 Stage 1 예측 bbox 기준 크롭
