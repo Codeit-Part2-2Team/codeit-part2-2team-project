@@ -38,8 +38,9 @@
         --splits      train val
 """
 
-from __future__ import annotations
 from PIL import Image
+from src.utils.timing import timed
+from __future__ import annotations
 
 import argparse
 import json
@@ -56,7 +57,8 @@ if root is None:
 sys.path.insert(0, str(root))
 
 
-from src.utils.timing import timed
+
+
 
 _IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"]
 

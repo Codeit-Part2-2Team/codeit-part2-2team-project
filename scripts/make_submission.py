@@ -1,3 +1,5 @@
+# isort: skip_file
+# ruff: noqa: E402
 """
 Kaggle 제출 CSV 생성 CLI.
 
@@ -65,14 +67,32 @@ def main():
         default=None,
         help="Kaggle image_id 매핑 JSON {filename_stem: int} (미지정 시 파일명 그대로 사용)",
     )
+    parser.add_argument(
+        "--unknown-class-map",
+        default=None,
+        help="class_map 밖 예측 class_name을 Kaggle class_name/category_id로 치환하는 JSON",
+    )
+    parser.add_argument(
+        "--strict-class-map",
+        action="store_true",
+        help="Raise an error instead of skipping class names missing from class_map.",
+    )
     args = parser.parse_args()
 
     class_map = _load_json_map(args.class_map) if args.class_map else None
     image_id_map = _load_json_map(args.image_id_map) if args.image_id_map else None
+    unknown_class_map = (
+        _load_json_map(args.unknown_class_map) if args.unknown_class_map else None
+    )
 
     predictions = merge_predictions(args.manifest, args.s2_preds)
     save_submission(
-        predictions, args.output, class_map=class_map, image_id_map=image_id_map
+        predictions,
+        args.output,
+        class_map=class_map,
+        image_id_map=image_id_map,
+        unknown_class_map=unknown_class_map,
+        strict_class_map=args.strict_class_map,
     )
     print(f"제출 파일 생성 완료: {args.output}")
 
