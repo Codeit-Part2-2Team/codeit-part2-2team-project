@@ -1,3 +1,5 @@
+# isort: skip_file
+# ruff: noqa: E402
 """Stage 1 추론 → crop → Stage 2 추론 → submission.csv 통합 실행 스크립트.
 
 사용 예:
@@ -67,6 +69,26 @@ def main() -> None:
     parser.add_argument(
         "--padding", type=float, default=0.05, help="bbox 여백 비율 (기본값 0.05)"
     )
+    parser.add_argument(
+        "--class-map",
+        default=None,
+        help="Kaggle category_id map JSON {class_name: category_id}",
+    )
+    parser.add_argument(
+        "--image-id-map",
+        default=None,
+        help="Kaggle image_id map JSON {filename_stem: numeric_id}",
+    )
+    parser.add_argument(
+        "--unknown-class-map",
+        default=None,
+        help="class_map 밖 예측 class_name을 Kaggle class_name/category_id로 치환하는 JSON",
+    )
+    parser.add_argument(
+        "--strict-class-map",
+        action="store_true",
+        help="Raise an error instead of skipping class names missing from class_map.",
+    )
     args = parser.parse_args()
 
     stage1_cfg = load_config(args.stage1_config)
@@ -135,8 +157,27 @@ def main() -> None:
         print("[실행] 결과 병합 및 submission 생성 중...")
         merged = merge_predictions(manifest_path, stage2_predictions)
         output_path = resolve_project_path(args.output)
-        save_submission(merged, output_path)
+        class_map = _load_json_map(args.class_map) if args.class_map else None
+        image_id_map = _load_json_map(args.image_id_map) if args.image_id_map else None
+        unknown_class_map = (
+            _load_json_map(args.unknown_class_map) if args.unknown_class_map else None
+        )
+        save_submission(
+            merged,
+            output_path,
+            class_map=class_map,
+            image_id_map=image_id_map,
+            unknown_class_map=unknown_class_map,
+            strict_class_map=args.strict_class_map,
+        )
         print(f"[완료] submission.csv → {output_path}")
+
+
+def _load_json_map(path: str) -> dict:
+    import json
+
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
 
 
 if __name__ == "__main__":
