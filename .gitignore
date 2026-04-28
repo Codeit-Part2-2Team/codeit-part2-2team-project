@@ -32,7 +32,7 @@ env/
 # 데이터 파일 (용량 제한으로 Git 관리 제외)
 # ============================================================
 data/raw/
-data/processed/
+!data/processed/
 data/external/
 *.csv
 *.json
@@ -41,6 +41,7 @@ data/external/
 
 # 어노테이션 (포맷 확정 후 필요 시 예외 추가)
 *.json
+!**/kaggle_class_map.json
 !experiments/**/config.yaml
 !src/**/*.yaml
 !scripts/**/*.yaml
