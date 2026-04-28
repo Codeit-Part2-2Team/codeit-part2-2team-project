@@ -34,6 +34,7 @@ env/
 data/raw/
 !data/processed/
 data/external/
+data/labels
 *.csv
 *.json
 *.xml
