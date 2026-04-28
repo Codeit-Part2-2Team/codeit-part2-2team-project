@@ -2,12 +2,12 @@ seed: 42
 stage: 2
 task: classification
 classes: []
-nc: 279
+nc: 371
 
 model:
   name: resnet50
   pretrained: true
-  num_classes: 279
+  num_classes: 371
 
 data:
   train: data/processed/crops/train/
