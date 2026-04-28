@@ -411,3 +411,42 @@ annotation_id, image_id, category_id, bbox_x, bbox_y, bbox_w, bbox_h, score
 - `category_id`: `kaggle_class_map.json` 기준 Kaggle dl_idx (예: crestor_tab_20mg → 16262)
 - `score`: `crops_manifest.json`의 det_score × `stage2_predictions.json`의 cls_score
 - `crops_manifest.json`의 bbox + `stage2_predictions.json`의 class를 `crop_id` 기준으로 병합해 생성.
+
+---
+
+## Submission ID Mapping Rule
+
+Kaggle 제출은 반드시 **test 원본 이미지 기준 ID**를 사용한다.
+
+- `data/test/1.jpg`에서 Stage 1이 bbox 2개를 찾으면 inference crop은 `1_0.jpg`, `1_1.jpg`처럼 생성된다.
+- 이때 `crop_id`는 `1_0`, `1_1`이지만 최종 `submission.csv`의 `image_id`는 둘 다 `1`이어야 한다.
+- `make_submission.py`는 `stage2_predictions.json`의 `crop_id`로 inference `crops_manifest.json`을 join하고, 제출용 `image_id`와 bbox는 manifest의 `image_id`, `bbox`를 사용한다.
+- 따라서 제출 생성 시 `--manifest`에는 GT crop manifest가 아니라 **test inference crop manifest**를 넣어야 한다.
+
+Example:
+
+```bash
+python scripts/pipeline/crop.py \
+    --predictions data/test/s1_predictions.json \
+    --source      data/test \
+    --output      data/test/s1_crops
+
+python scripts/make_submission.py \
+    --manifest  data/test/s1_crops/crops_manifest.json \
+    --s2-preds  data/test/stage2_predictions.json \
+    --class-map data/processed/kaggle_class_map.json \
+    --output    submissions/submission.csv
+```
+
+`--class-map`을 지정한 경우 map에 없는 예측 `class_name`은 Kaggle 제출 대상 밖 클래스로 보고 기본 제외한다. 잘못된 내부 class index가 Kaggle `category_id`로 조용히 들어가는 상황을 막기 위함이다. 누락 클래스를 즉시 에러로 잡고 싶으면 `--strict-class-map`을 추가한다.
+
+map 밖 클래스를 Kaggle 대상 클래스 중 하나로 치환해야 한다면 `--unknown-class-map`을 사용한다.
+
+```json
+{
+  "40mg_isoptin_tab": "twynsta_tab_40_5mg",
+  "some_external_class": 27733
+}
+```
+
+값은 `kaggle_class_map.json`에 있는 class name 또는 category_id여야 한다. 임의의 `unknown` category는 Kaggle 평가 대상에 없으면 사용할 수 없다.
