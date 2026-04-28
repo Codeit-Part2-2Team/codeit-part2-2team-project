@@ -8,6 +8,7 @@
 | `04_baseline.ipynb` | YOLOv8n Baseline 학습 |  |
 | `05_experiments.ipynb` | 실험 로그·비교 |  |
 | `06_inference.ipynb` | 추론·결과 시각화 | 공용 |
+| `07_classification_dataset_augmentation.ipynb` | Stage 2 CNN Classification 모델용 증강 Train Dataset 구축 | 소원 |
 | `pipeline_tutorial.ipynb` | 2-Stage 파이프라인 튜토리얼 | 승준 |
 
 ## 규칙
