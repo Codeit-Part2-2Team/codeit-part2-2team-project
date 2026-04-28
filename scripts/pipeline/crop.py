@@ -1,3 +1,5 @@
+# isort: skip_file
+# ruff: noqa: E402
 """알약 단위 크롭 이미지 생성 스크립트.
 
 세 가지 모드를 지원한다:
@@ -35,9 +37,10 @@
         --imagefolder data/processed/crops \\
         --splits      train val
 """
-from __future__ import annotations
+
 from PIL import Image
 from src.utils.timing import timed
+from __future__ import annotations
 
 import argparse
 import json
@@ -49,10 +52,12 @@ root = next(
     (p for p in Path(__file__).resolve().parents if (p / "requirements.txt").exists()),
     None,
 )
-
 if root is None:
     raise RuntimeError("project root (requirements.txt) not found")
 sys.path.insert(0, str(root))
+
+
+
 
 
 _IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"]

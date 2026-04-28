@@ -1,11 +1,25 @@
+# isort: skip_file
+# ruff: noqa: E402
 from __future__ import annotations
 
 import argparse
 import shutil
+import sys
 from pathlib import Path
 from typing import Iterable, List
 
 import pandas as pd
+
+sys.path.insert(
+    0,
+    str(
+        next(
+            p
+            for p in Path(__file__).resolve().parents
+            if (p / "requirements.txt").exists()
+        )
+    ),
+)
 
 from src.data.class_map import load_class_maps
 from src.data.parser_raw import build_raw_crops

@@ -1,3 +1,5 @@
+# isort: skip_file
+# ruff: noqa: E402
 """
 검증 CLI.
 

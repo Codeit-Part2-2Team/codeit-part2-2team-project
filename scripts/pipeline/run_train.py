@@ -1,3 +1,5 @@
+# isort: skip_file
+# ruff: noqa: E402
 """Stage 1 학습 → Stage 2 학습 통합 실행 스크립트.
 
 사용 예:
