@@ -1,3 +1,5 @@
+# isort: skip_file
+# ruff: noqa: E402
 """Stage 2 분류기 추론 CLI."""
 
 from __future__ import annotations
