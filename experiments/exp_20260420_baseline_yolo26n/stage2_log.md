@@ -21,11 +21,11 @@
 - Optimizer: AdamW (weight_decay: 0.01)
 - LR: 0.0001 (lrf: 0.01, CosineAnnealingLR)
 - Seed: 42
-- Dataset: v1.0 (raw + external 통합, 371 클래스)
+- Dataset: v1.0 (raw + external 통합, 279 클래스 / 371 → 279, 10장 미만 제거, 2026-04-29 확정)
 
 ## 실험 설정
 - 모델: ResNet50 (pretrained)
-- 데이터 조건: GT bbox 기준 크롭 이미지, 371 클래스, Albumentations 증강 적용
+- 데이터 조건: GT bbox 기준 크롭 이미지, 279 클래스 (371 → 279, 10장 미만 제거, 2026-04-29 확정), Albumentations 증강 적용
 - 특이사항: 버그 수정 후 정상화 (수정 전 결과 무효)
 
 ## 실험 결과
