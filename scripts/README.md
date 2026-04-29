@@ -213,6 +213,8 @@ python scripts/pipeline/run_predict.py \
 | `--output` | ✅ | — | submission.csv 저장 경로 |
 | `--class-map` | | — | Kaggle category_id 매핑 JSON `{class_name: id}` |
 | `--image-id-map` | | — | Kaggle image_id 매핑 JSON `{stem: int}` |
+| `--unknown-class-map` | | — | Stage 2 alias class_name을 Kaggle canonical class로 치환하는 JSON |
+| `--strict-class-map` | | `false` | class_map 밖 class_name을 제외하지 않고 에러로 처리 |
 
 score = `det_score` (manifest) × `cls_score` (stage2_predictions)
 
@@ -324,6 +326,26 @@ score = `det_score` (manifest) × `cls_score` (stage2_predictions)
 | `--stage2-weights` | | 자동 조합 | Stage 2 가중치 경로 |
 | `--crop-output` | | `data/processed/crops/inference` | 크롭 이미지 저장 디렉터리 |
 | `--padding` | | `0.05` | crop padding 비율 |
+| `--class-map` | | — | Kaggle category_id 매핑 JSON `{class_name: id}` |
+| `--image-id-map` | | — | Kaggle image_id 매핑 JSON `{stem: int}` |
+| `--unknown-class-map` | | — | Stage 2 alias class_name을 Kaggle canonical class로 치환하는 JSON |
+| `--strict-class-map` | | `false` | class_map 밖 class_name을 제외하지 않고 에러로 처리 |
+
+### pipeline/evaluate_pipeline.py
+
+| 인자 | 필수 | 기본값 | 설명 |
+|------|------|--------|------|
+| `--gt-labels` | ✅ | — | YOLO label 디렉터리 |
+| `--gt-images` | ✅ | — | 원본 이미지 디렉터리 |
+| `--s1-crops` | ✅ | — | Stage 1 inference crops_manifest.json |
+| `--s2-preds` | ✅ | — | Stage 2 predictions JSON |
+| `--kaggle-classes` | | — | Kaggle class map JSON. 지정 시 해당 canonical class만 평가 |
+| `--unknown-class-map` | | — | Stage 2 alias class_name을 평가용 canonical class로 치환 |
+| `--per-class` | | `false` | 클래스별 AP 상위 20개 출력 |
+
+GT bbox는 YOLO label에서 읽고, GT class는 GT crop manifest / Roboflow source key /
+`raw_K-*` 파일명의 category_id를 사용해 복원한다. YOLO label은 Stage 1용
+`pill=0` 단일 클래스이므로 E2E class 평가에는 별도 class 복원이 필요하다.
 
 ---
 
@@ -435,6 +457,7 @@ python scripts/make_submission.py \
     --manifest  data/test/s1_crops/crops_manifest.json \
     --s2-preds  data/test/stage2_predictions.json \
     --class-map data/processed/kaggle_class_map.json \
+    --unknown-class-map data/processed/kaggle_unknown_class_map.json \
     --output    submissions/submission.csv
 ```
 
