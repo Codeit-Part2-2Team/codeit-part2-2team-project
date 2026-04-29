@@ -337,7 +337,7 @@ task: classification
 model:
   name: efficientnetv2_s   # resnet50 / efficientnet_b2 / efficientnetv2_s
   pretrained: true
-  num_classes: 371
+  num_classes: 279
 
 data:
   train: data/processed/crops/train/
