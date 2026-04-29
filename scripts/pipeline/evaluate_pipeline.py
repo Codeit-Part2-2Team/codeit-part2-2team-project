@@ -6,9 +6,9 @@ YOLO val label txt + 원본 이미지 → GT 구성
 Stage 1 crops manifest + Stage 2 predictions → 예측 구성
 → end-to-end mAP50 계산
 
-GT 클래스명은 파일명에서 추출 후 정규화 (소문자, 하이픈→언더스코어).
-iOS/IMG 파일처럼 파일명에 약품명이 없는 경우 Stage 2가 모르는 클래스로 처리되어
-자동으로 평가에서 제외된다.
+GT bbox는 YOLO label txt에서 읽고, GT 클래스명은 같은 split의
+data/processed/crops/{split}/crops_manifest.json을 우선 사용한다.
+manifest가 없거나 매칭되지 않는 경우에만 파일명 기반 추출로 fallback한다.
 
 사용 예:
     python scripts/pipeline/evaluate_pipeline.py \\
@@ -21,14 +21,13 @@ iOS/IMG 파일처럼 파일명에 약품명이 없는 경우 Stage 2가 모르�
     python scripts/pipeline/evaluate_pipeline.py ... --per-class
 """
 from __future__ import annotations
-from scripts.pipeline.crop import extract_class_name
 
 import argparse
 import json
 import sys
 import re as _re
 
-from collections import defaultdict
+from collections import defaultdict, deque
 from pathlib import Path
 
 import numpy as np
@@ -195,7 +194,88 @@ def _normalize(name: str) -> str:
     return name.lower().replace("-", "_")
 
 
-def _build_class_lookup(crops_root: Path) -> dict[str, str]:
+def _strip_crop_suffix(image_id: str) -> str:
+    """GT crop image_id 끝의 class/index suffix를 제거한다."""
+
+    return _re.sub(r"_\d+$", "", image_id)
+
+
+def _source_image_key(image_id: str) -> str:
+    """Roboflow hash를 제외한 원본 이미지 기준 key를 만든다."""
+
+    return _re.sub(r"\.rf\..+$", "", image_id)
+
+
+def _extract_raw_k_ids(stem: str) -> list[str]:
+    """raw_K 파일명에서 Kaggle category_id 목록을 추출한다."""
+
+    match = _re.match(r"^raw_K-([^_]+)", stem)
+    if not match:
+        return []
+    return [part.zfill(6) for part in match.group(1).split("-") if part]
+
+
+def _resolve_raw_k_classes(
+    stem: str,
+    id_to_classes: dict[str, list[str]] | None,
+    manifest_classes: deque[str],
+) -> deque[str]:
+    """raw_K category_id를 class_name queue로 변환한다.
+
+    같은 category_id에 여러 alias가 있으면 GT crop manifest에 등장한 alias를
+    우선 사용한다.
+    """
+
+    if id_to_classes is None:
+        return deque()
+
+    manifest_class_set = set(manifest_classes)
+    classes: deque[str] = deque()
+    for category_id in _extract_raw_k_ids(stem):
+        candidates = id_to_classes.get(category_id, [])
+        if not candidates:
+            continue
+        selected = next(
+            (candidate for candidate in candidates if candidate in manifest_class_set),
+            candidates[-1],
+        )
+        classes.append(selected)
+    return classes
+
+
+def _build_manifest_class_lookup(
+    crops_root: Path, split: str
+) -> dict[str, deque[str]]:
+    """GT crop manifest에서 {원본 image_id → class_name 목록}을 빌드한다.
+
+    ImageFolder 기반 GT crop manifest에는 bbox가 없으므로 bbox는 YOLO label에서
+    읽고, 여기서는 class_name만 복원한다. 복수 알약 이미지는 manifest 순서를
+    유지한 class queue로 반환한다.
+    """
+
+    lookup: dict[str, deque[str]] = defaultdict(deque)
+    manifest_splits = [split] + [
+        p.name for p in sorted(crops_root.iterdir()) if p.is_dir() and p.name != split
+    ]
+
+    for manifest_split in manifest_splits:
+        manifest_path = crops_root / manifest_split / "crops_manifest.json"
+        if not manifest_path.exists():
+            continue
+        with open(manifest_path, encoding="utf-8") as f:
+            for r in json.load(f):
+                if not r.get("class_name"):
+                    continue
+                image_id = _strip_crop_suffix(r["image_id"])
+                lookup[image_id].append(r["class_name"])
+
+                source_key = _source_image_key(image_id)
+                if source_key != image_id:
+                    lookup[source_key].append(r["class_name"])
+    return dict(lookup)
+
+
+def _build_filename_class_lookup(crops_root: Path) -> dict[str, str]:
     """train/val crops_manifest.json에서 {추출된_파일명_키 → class_name} 빌드."""
 
     lookup: dict[str, str] = {}
@@ -216,24 +296,34 @@ def _build_class_lookup(crops_root: Path) -> dict[str, str]:
 def load_gt(
     label_dir: Path,
     image_dir: Path,
-    class_lookup: dict[str, str] | None = None,
+    filename_class_lookup: dict[str, str] | None = None,
+    manifest_class_lookup: dict[str, deque[str]] | None = None,
+    id_to_classes: dict[str, list[str]] | None = None,
 ) -> dict[str, list[dict]]:
     """YOLO label txt + 이미지 → {image_id: [{bbox(pixel), class_name}]}
 
-    class_lookup 지정 시 파일명 추출 결과를 lookup으로 보정한다.
-    lookup에 없는 이미지는 GT에서 제외된다.
+    manifest_class_lookup이 있으면 GT crop manifest의 image_id 기준 class_name을
+    우선 사용한다. 매칭되지 않으면 filename_class_lookup / 파일명 추출로 fallback한다.
     """
     gt: dict[str, list] = defaultdict(list)
     for label_file in sorted(label_dir.glob("*.txt")):
         stem = label_file.stem
         key = _normalize(extract_class_name(stem)).rstrip("_-")
-
-        if class_lookup is not None:
-            class_name = class_lookup.get(key)
-            if class_name is None:
-                continue
-        else:
-            class_name = key
+        manifest_classes = deque()
+        if manifest_class_lookup is not None:
+            manifest_classes = deque(
+                manifest_class_lookup.get(stem)
+                or manifest_class_lookup.get(_source_image_key(stem))
+                or []
+            )
+        raw_k_classes = _resolve_raw_k_classes(stem, id_to_classes, manifest_classes)
+        fallback_class_name = (
+            filename_class_lookup.get(key)
+            if filename_class_lookup is not None
+            else None
+        )
+        if fallback_class_name is None:
+            fallback_class_name = key
 
         img_path = next(
             (
@@ -254,6 +344,13 @@ def load_gt(
             if len(parts) < 5:
                 continue
             _, cx, cy, bw, bh = map(float, parts[:5])
+            class_name = (
+                raw_k_classes.popleft()
+                if raw_k_classes
+                else manifest_classes.popleft()
+                if manifest_classes
+                else fallback_class_name
+            )
             gt[stem].append(
                 {
                     "bbox": [
@@ -269,7 +366,9 @@ def load_gt(
 
 
 def load_preds(
-    s1_crops_manifest: Path, s2_preds_path: Path
+    s1_crops_manifest: Path,
+    s2_preds_path: Path,
+    class_alias_map: dict[str, str] | None = None,
 ) -> tuple[dict[str, list[dict]], set[str]]:
     """S1 crops + S2 preds → ({image_id: [{bbox, class_name, score}]}, known_classes)
 
@@ -280,18 +379,22 @@ def load_preds(
     with open(s2_preds_path, encoding="utf-8") as f:
         s2_preds = json.load(f)
 
+    class_alias_map = class_alias_map or {}
     s2_by_crop = {r["crop_id"]: r for r in s2_preds}
-    known_classes = {r["class_name"] for r in s2_preds}
+    known_classes = {
+        class_alias_map.get(r["class_name"], r["class_name"]) for r in s2_preds
+    }
 
     preds: dict[str, list] = defaultdict(list)
     for crop in s1_crops:
         s2 = s2_by_crop.get(crop["crop_id"])
         if s2 is None:
             continue
+        class_name = class_alias_map.get(s2["class_name"], s2["class_name"])
         preds[crop["image_id"]].append(
             {
                 "bbox": crop["bbox"],
-                "class_name": s2["class_name"],
+                "class_name": class_name,
                 "score": crop["score"] * s2["score"],
             }
         )
@@ -317,17 +420,53 @@ def main() -> None:
         default=None,
         help="Kaggle class map JSON ({class_name: category_id}). 지정 시 해당 클래스만 평가 (submission 기준과 일치)",
     )
+    parser.add_argument(
+        "--unknown-class-map",
+        default=None,
+        help="Stage 2 예측 alias class_name을 평가용 canonical class_name으로 치환하는 JSON",
+    )
     args = parser.parse_args()
 
-    # gt-labels 경로 기준으로 crops manifest 자동 탐색 (data/processed/labels/val → data/processed/crops)
+    # gt-labels 경로 기준으로 crops manifest 자동 탐색
+    # (data/processed/labels/val → data/processed/crops/val/crops_manifest.json)
+    gt_labels_path = Path(args.gt_labels)
+    split = gt_labels_path.name
     crops_root = Path(args.gt_labels).parent.parent / "crops"
-    class_lookup = _build_class_lookup(crops_root) if crops_root.exists() else None
-    gt = load_gt(Path(args.gt_labels), Path(args.gt_images), class_lookup)
-    preds, known_classes = load_preds(Path(args.s1_crops), Path(args.s2_preds))
-
+    manifest_class_lookup = (
+        _build_manifest_class_lookup(crops_root, split) if crops_root.exists() else None
+    )
+    filename_class_lookup = (
+        _build_filename_class_lookup(crops_root) if crops_root.exists() else None
+    )
+    id_to_classes = None
     if args.kaggle_classes:
         with open(args.kaggle_classes, encoding="utf-8") as f:
             kaggle_map = json.load(f)
+        id_to_classes = defaultdict(list)
+        for class_name, category_id in kaggle_map.items():
+            if class_name == "_comment":
+                continue
+            id_to_classes[str(category_id).zfill(6)].append(class_name)
+
+    class_alias_map = None
+    if args.unknown_class_map:
+        with open(args.unknown_class_map, encoding="utf-8") as f:
+            class_alias_map = {
+                k: v for k, v in json.load(f).items() if not k.startswith("_")
+            }
+
+    gt = load_gt(
+        gt_labels_path,
+        Path(args.gt_images),
+        filename_class_lookup,
+        manifest_class_lookup,
+        id_to_classes,
+    )
+    preds, known_classes = load_preds(
+        Path(args.s1_crops), Path(args.s2_preds), class_alias_map
+    )
+
+    if args.kaggle_classes:
         known_classes = {k for k in kaggle_map if k != "_comment"}
 
     n_gt_imgs = len(gt)
