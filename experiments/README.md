@@ -39,7 +39,7 @@ experiments/
 | exp_20260420_yolo26n_baseline | 2026-04-20 | 승준 | 0.9947 | Baseline 완료 (2026-04-27) |
 | exp_20260422_yolov8s_baseline | 2026-04-22 | 도혁 | - | config 초안만 존재, 미실행 |
 | exp_20260422_yolo11s_baseline | 2026-04-22 | 도혁 | - | config 초안만 존재, 미실행 |
-| exp_20260429_resnet50_newdata | 2026-04-29 | ME (승준) | - | 신규 데이터셋 기반 Baseline 실험 진행 중 |
+| exp_20260429_resnet50_newdata | 2026-04-29 | ME (승준) | 0.8579 | 279클래스 커버리지 불충분, hold 처리. 새 데이터셋 재실험 예정 |
 
 ## 실험 네이밍 규칙 적용 정책
 
