@@ -696,6 +696,234 @@ mAP@0.75        : 0.xxxx
 
 ---
 
+### 7. Stage 2 자동 튜닝
+
+Stage 2 튜닝 runner는 **분류기 자체의 validation metric**을 최적화한다. 기본 objective는 `top1_acc`이며, Stage 1은 baseline freeze 상태로 고정한다. 상위 trial만 별도로 E2E 평가를 수행해 Kaggle mAP 개선 여부를 확인한다.
+
+> 현재 runner는 `top1_acc` / `top5_acc` objective를 지원한다. E2E mAP objective는 trial마다 Stage 2 prediction과 `evaluate_pipeline.py`까지 실행해야 하므로 후속 확장 대상으로 둔다.
+
+#### 공통 옵션
+
+| 인자 | 필수 | 설명 |
+|------|------|------|
+| `--base-config` | ✅ | 기준 Stage 2 config YAML. baseline freeze 기준은 `experiments/exp_20260420_baseline_yolo26n/s2_config.yaml` |
+| `--search-space` | 선택 | 탐색 공간 YAML. 생략 시 runner 내 기본 탐색 공간 사용 |
+| `--output` | 선택 | trial 산출물 저장 루트 |
+| `--data` | 선택 | Stage 2 crop root. 지정 시 `<data>/train`, `<data>/val`을 사용 |
+| `--epochs` | 선택 | 탐색용 epoch override. 15~30 epoch 권장 |
+| `--device` | 선택 | `0`, `1`, `cpu` 등 device override |
+| `--metric` | 선택 | objective metric. `top1_acc` 또는 `top5_acc` |
+
+주의:
+- `--base-config`의 `model.num_classes`는 실제 crop train class 수와 같아야 한다.
+- baseline freeze 기준 Stage 2 class set은 305개다.
+- 탐색 runner는 baseline config 파일을 직접 수정하지 않고 trial별 `config.yaml`을 새로 저장한다.
+
+#### Grid Search
+
+Grid Search는 정해진 후보 조합을 모두 실행한다. 작은 후보군을 명시적으로 비교할 때 사용한다.
+
+```bash
+python scripts/pipeline/stage2_grid_search.py \
+    --base-config experiments/exp_20260420_baseline_yolo26n/s2_config.yaml \
+    --output experiments/stage2_grid_search \
+    --epochs 30 \
+    --max-trials 12
+```
+
+추가 옵션:
+
+| 인자 | 설명 |
+|------|------|
+| `--max-trials` | 앞에서 N개 조합만 실행. smoke test나 비용 제한용 |
+
+검색 공간을 파일로 지정할 수도 있다. YAML은 Stage 2 config 구조와 같은 nested 형식을 권장한다.
+
+```yaml
+# experiments/stage2_grid_search/grid_space.yaml
+model:
+  name: [resnet50, efficientnet_b2]
+
+train:
+  lr0: [0.00003, 0.0001, 0.0003]
+  lrf: [0.005, 0.01]
+  weight_decay: [0.001, 0.01]
+  label_smoothing: [0.0, 0.05, 0.1]
+```
+
+YAML은 Stage 2 config 구조와 같은 nested 형식을 권장한다. 짧게 쓰고 싶으면 dotted key도 사용할 수 있다.
+
+```yaml
+# 위 설정과 동일
+model.name: [resnet50, efficientnet_b2]
+train.lr0: [0.00003, 0.0001, 0.0003]
+train.lrf: [0.005, 0.01]
+train.weight_decay: [0.001, 0.01]
+train.label_smoothing: [0.0, 0.05, 0.1]
+```
+
+#### search_space에 넣을 수 있는 주요 파라미터
+
+Runner는 Stage 2 config의 값을 dotted key로 수정한다. 즉 `s2_config.yaml`에 존재하고 `Classifier` / `Stage2Dataset`이 실제로 읽는 값이면 search space에 넣을 수 있다. 우선 아래 파라미터를 권장한다.
+
+아래 key 목록은 **Grid Search와 Optuna가 동일하게 사용**한다. 차이는 YAML 값 형식뿐이다.
+
+- Grid Search: `lr0: [0.00003, 0.0001, 0.0003]`처럼 후보 리스트를 적는다.
+- Optuna: `lr0: {type: float, low: ..., high: ..., log: true}`처럼 샘플링 규칙을 적는다.
+- key는 nested 형식을 권장하며, dotted key도 옵션으로 지원한다.
+
+| Nested 위치 | dotted alias | 타입 예시 | 설명 | 권장 범위/후보 |
+|-------------|--------------|-----------|------|----------------|
+| `model: name` | `model.name` | categorical | Stage 2 backbone | `resnet50`, `efficientnet_b2`, `efficientnetv2_s` |
+| `train: lr0` | `train.lr0` | float log | 초기 learning rate | `1e-5` ~ `3e-4` |
+| `train: lrf` | `train.lrf` | float log | cosine scheduler 최종 LR 비율 | `0.005` ~ `0.05` |
+| `train: weight_decay` | `train.weight_decay` | float log | weight decay | `1e-4` ~ `1e-2` |
+| `train: label_smoothing` | `train.label_smoothing` | float | CE/Focal label smoothing | `0.0` ~ `0.15` |
+| `train: batch` | `train.batch` | categorical | batch size | `16`, `32` |
+| `train: optimizer` | `train.optimizer` | categorical | optimizer | `AdamW`, `Adam`, `SGD` |
+| `train: warmup_epochs` | `train.warmup_epochs` | int | warmup epoch 수 | `1` ~ `5` |
+| `train: criterion` | `train.criterion` | categorical | loss 함수 | `cross_entropy`, `focal` |
+| `train: focal_alpha` | `train.focal_alpha` | float | FocalLoss alpha | `0.1` ~ `0.75` |
+| `train: focal_gamma` | `train.focal_gamma` | float | FocalLoss gamma | `1.0` ~ `3.0` |
+| `albumentations: brightness_contrast: p` | `albumentations.brightness_contrast.p` | float | 밝기/대비 증강 확률 | `0.0` ~ `0.7` |
+| `albumentations: brightness_contrast: brightness_limit` | `albumentations.brightness_contrast.brightness_limit` | float | 밝기 변화 폭 | `0.05` ~ `0.25` |
+| `albumentations: brightness_contrast: contrast_limit` | `albumentations.brightness_contrast.contrast_limit` | float | 대비 변화 폭 | `0.05` ~ `0.25` |
+| `albumentations: jpeg_compression: p` | `albumentations.jpeg_compression.p` | float | JPEG compression 증강 확률 | `0.0` ~ `0.5` |
+| `albumentations: jpeg_compression: quality_lower` | `albumentations.jpeg_compression.quality_lower` | int | JPEG 품질 하한 | `70` ~ `95` |
+| `albumentations: gaussian_blur: p` | `albumentations.gaussian_blur.p` | float | blur 증강 확률 | `0.0` ~ `0.4` |
+
+주의:
+- `model.num_classes`, `nc`는 search space에 넣지 않는다. 실제 crop class 수와 일치해야 하는 고정값이다.
+- `data.train`, `data.val`, `output.project`, `output.name`은 runner가 관리하므로 search space에 넣지 않는다.
+- `train.criterion: bce`는 현재 label 형식과 맞지 않을 수 있어 기본 탐색에서는 제외한다.
+- `SGD`를 탐색할 때는 `train.momentum`도 함께 넣을 수 있다.
+
+```bash
+python scripts/pipeline/stage2_grid_search.py \
+    --base-config experiments/exp_20260420_baseline_yolo26n/s2_config.yaml \
+    --search-space experiments/stage2_grid_search/grid_space.yaml \
+    --output experiments/stage2_grid_search \
+    --epochs 30
+```
+
+#### Optuna
+
+Optuna는 search space 안에서 후보를 샘플링한다. 연속형 하이퍼파라미터를 탐색할 때 사용한다.
+
+```bash
+python scripts/pipeline/stage2_optuna.py \
+    --base-config experiments/exp_20260420_baseline_yolo26n/s2_config.yaml \
+    --output experiments/stage2_optuna \
+    --n-trials 30 \
+    --epochs 30 \
+    --metric top1_acc
+```
+
+추가 옵션:
+
+| 인자 | 설명 |
+|------|------|
+| `--n-trials` | 실행할 trial 수 |
+| `--study-name` | Optuna study 이름. 기본값 `stage2_optuna` |
+
+Optuna 검색 공간은 다음 형식을 사용한다.
+
+```yaml
+# experiments/stage2_optuna/search_space.yaml
+model:
+  name:
+    type: categorical
+    choices: [resnet50, efficientnet_b2, efficientnetv2_s]
+
+train:
+  lr0:
+    type: float
+    low: 0.00001
+    high: 0.0003
+    log: true
+  weight_decay:
+    type: float
+    low: 0.0001
+    high: 0.01
+    log: true
+  label_smoothing:
+    type: float
+    low: 0.0
+    high: 0.15
+  batch:
+    type: categorical
+    choices: [16, 32]
+```
+
+지원 타입:
+
+| type | 필드 | 예시 |
+|------|------|------|
+| `categorical` | `choices` | 모델명, optimizer, batch 후보 |
+| `float` | `low`, `high`, 선택 `log` | learning rate, weight decay |
+| `int` | `low`, `high`, 선택 `step`, `log` | warmup epoch 등 정수값 |
+
+Optuna도 dotted key를 옵션으로 사용할 수 있다.
+
+```yaml
+train.lr0:
+  type: float
+  low: 0.00001
+  high: 0.0003
+  log: true
+```
+
+위 설정은 nested YAML의 `train: lr0:`과 동일하게 처리된다.
+
+#### 산출물
+
+각 runner는 trial별 산출물을 분리해 저장한다.
+
+```
+experiments/stage2_optuna/
+├── search_space.yaml
+├── study.db              # Optuna 사용 시
+├── results.csv           # trial별 score/top1/top5/elapsed_sec/params/status
+├── best_trial.json       # 최고 trial 요약
+└── trial_0000/
+    ├── config.yaml       # trial에 실제 사용한 config
+    ├── result.json       # trial 결과 한 줄 요약
+    ├── timings.json      # hpo_trial 소요 시간
+    └── weights/
+        ├── best.pt
+        └── last.pt
+```
+
+`results.csv`의 `score`는 `--metric`으로 선택한 objective 값이다. trial 소요 시간은 각 `trial_*/timings.json`의 `hpo_trial`에 저장되며, 비교 편의를 위해 `results.csv`와 `result.json`에도 `elapsed_sec`로 함께 기록한다.
+
+#### 운영 원칙
+
+- 튜닝 objective는 기본적으로 `top1_acc`를 사용한다.
+- 탐색 단계에서는 `--epochs 15~30` 정도로 짧게 돌린다.
+- best trial 상위 3~5개만 100 epoch로 재학습하고 E2E mAP를 확인한다.
+- Stage 2 튜닝 실험은 baseline config를 직접 덮어쓰지 않고 별도 `experiments/stage2_*` 경로에 저장한다.
+- HPO 결과가 좋아도 최종 채택 전에는 `evaluate_pipeline.py --kaggle-classes --unknown-class-map` 기준으로 E2E 검증을 수행한다.
+
+상위 trial E2E 검증 예시:
+
+```bash
+python scripts/pipeline/stage2_predict.py \
+    --config  experiments/stage2_optuna/trial_0000/config.yaml \
+    --weights experiments/stage2_optuna/trial_0000/weights/best.pt \
+    --source  experiments/exp_20260420_baseline_yolo26n/stage1_crops \
+    --output  experiments/stage2_optuna/trial_0000/stage2_predictions.json
+
+python scripts/pipeline/evaluate_pipeline.py \
+    --gt-labels data/processed/labels/val \
+    --gt-images data/processed/images/val \
+    --s1-crops  experiments/exp_20260420_baseline_yolo26n/stage1_crops/crops_manifest.json \
+    --s2-preds  experiments/stage2_optuna/trial_0000/stage2_predictions.json \
+    --kaggle-classes data/processed/kaggle_class_map.json \
+    --unknown-class-map data/processed/kaggle_unknown_class_map.json
+```
+
+---
+
 ## 🔄 전체 파이프라인 통합
 
 ```

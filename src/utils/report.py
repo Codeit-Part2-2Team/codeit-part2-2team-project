@@ -18,6 +18,7 @@ _TIMING_LABELS: dict[str, str] = {
     "s2_train": "S2 학습",
     "s2_predict": "S2 추론",
     "pipeline_predict": "파이프라인 추론",
+    "hpo_trial": "HPO trial",
 }
 
 
