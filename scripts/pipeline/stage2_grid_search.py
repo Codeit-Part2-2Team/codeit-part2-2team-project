@@ -59,6 +59,11 @@ def main() -> None:
     parser.add_argument("--max-trials", type=int, help="앞에서 N개 조합만 실행")
     parser.add_argument("--epochs", type=int, help="탐색용 epoch override")
     parser.add_argument("--device", help="탐색용 device override")
+    parser.add_argument(
+        "--skip-done",
+        action="store_true",
+        help="result.json이 이미 존재하는 trial을 건너뛴다 (중단 후 재시작용)",
+    )
     args = parser.parse_args()
 
     base_cfg = load_base_config(args.base_config)
@@ -87,6 +92,16 @@ def main() -> None:
         save_yaml(cfg, config_path)
 
         print(f"\n[grid] {trial_name}/{len(all_params):04d} params={params}")
+
+        result_json = trial_dir / "result.json"
+        if args.skip_done and result_json.exists():
+            with open(result_json, encoding="utf-8") as f:
+                row = json.load(f)
+            print(f"[grid] {trial_name} 스킵 (이미 완료)")
+            if row.get("status") == "ok":
+                results.append(row)
+            continue
+
         t0 = time.perf_counter()
         try:
             metrics = train_stage2(cfg, data_root=args.data)
