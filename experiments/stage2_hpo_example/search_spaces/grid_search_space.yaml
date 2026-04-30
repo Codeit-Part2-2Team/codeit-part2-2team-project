@@ -1,0 +1,40 @@
+# Stage 2 Grid Search 탐색 공간 예시
+#
+# 사용법:
+#   python scripts/pipeline/stage2_grid_search.py \
+#       --base-config experiments/<exp>/s2_config.yaml \
+#       --search-space scripts/pipeline/search_spaces/grid_search_space.yaml \
+#       --output experiments/stage2_grid_search \
+#       --data data/processed/crops
+#
+# 값이 리스트인 항목은 모든 조합을 Cartesian product으로 탐색합니다.
+# 조합 수 = 각 항목 길이의 곱 (주석에 기재).
+#
+# nested key(train.lr0)와 중첩 YAML(train: lr0: ...) 둘 다 지원합니다.
+
+model:
+  name:
+    - resnet50          # 기본 backbone
+    - efficientnet_b2   # 경량 backbone
+
+train:
+  lr0:
+    - 0.00003   # 낮은 lr (fine-tuning 시작점)
+    - 0.0001    # 중간 lr (기본값)
+    - 0.0003    # 높은 lr
+
+  lrf:
+    - 0.005
+    - 0.01
+
+  weight_decay:
+    - 0.001
+    - 0.01
+
+  label_smoothing:
+    - 0.0
+    - 0.05
+    - 0.1
+
+# 현재 조합 수: 2 × 3 × 2 × 2 × 3 = 72
+# --max-trials 로 앞에서 N개만 실행 가능

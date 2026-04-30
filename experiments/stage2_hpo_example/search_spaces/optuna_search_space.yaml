@@ -1,0 +1,52 @@
+# Stage 2 Optuna HPO 탐색 공간 예시
+#
+# 사용법:
+#   python scripts/pipeline/stage2_optuna.py \
+#       --base-config experiments/<exp>/s2_config.yaml \
+#       --search-space scripts/pipeline/search_spaces/optuna_search_space.yaml \
+#       --output experiments/stage2_optuna \
+#       --data data/processed/crops \
+#       --n-trials 30
+#
+# 지원 type: categorical / float / int
+#   categorical: choices 리스트에서 선택
+#   float: low~high 범위 연속 탐색, log: true 이면 log scale
+#   int:   low~high 범위 정수 탐색, step 으로 간격 지정 가능
+
+model:
+  name:
+    type: categorical
+    choices:
+      - resnet50
+      - efficientnet_b2
+      - efficientnetv2_s
+
+train:
+  lr0:
+    type: float
+    low: 0.00001
+    high: 0.0003
+    log: true
+
+  lrf:
+    type: float
+    low: 0.005
+    high: 0.05
+    log: true
+
+  weight_decay:
+    type: float
+    low: 0.0001
+    high: 0.01
+    log: true
+
+  label_smoothing:
+    type: float
+    low: 0.0
+    high: 0.15
+
+  batch:
+    type: int
+    low: 16
+    high: 64
+    step: 16  # 16, 32, 48, 64
