@@ -9,9 +9,9 @@
 | 항목 | 내용 |
 |------|------|
 | 프로젝트 | 경구약제 알약 탐지 |
-| 목표 | 이미지에서 알약 위치(bbox) + 57개 약품명(class) 동시 예측 |
+| 목표 | 이미지에서 알약 위치(bbox) + Kaggle 기준 약품명(class) 동시 예측 |
 | 팀 | PM 호정, ME 승준, EL 도혁, DE 소원, AL 찬우 |
-| 기간 | 2026-04-20 ~ 05-11 (이 보고서는 04-27 기준) |
+| 기간 | 2026-04-20 ~ 05-11 (이 보고서는 04-29 기준) |
 | 최종 아키텍처 | 2-Stage 파이프라인 (YOLOv26n 탐지 + 분류기) |
 
 ---
@@ -48,7 +48,15 @@ PR #84(`feat/nighthom-2stage-pipeline`)에서 전체 파이프라인의 핵심�
 
 ### Phase 6 — E2E 평가 및 제출 준비 (04-24 ~ 04-26)
 
-`evaluate_pipeline.py`를 새로 추가해 Stage 1 bbox + Stage 2 분류를 COCO 방식으로 통합 평가할 수 있게 됐다. confidence 점수를 `det_score × cls_score`로 통합하는 방식으로 제출 품질을 개선했고, Kaggle category_id 매핑 로직도 추가했다. 이 시점에 Kaggle mAP가 내부 mAP 대비 낮게 나오는 구조적 원인([P6])을 분석하였다.
+`evaluate_pipeline.py`를 새로 추가해 Stage 1 bbox + Stage 2 분류를 COCO 방식으로 통합 평가할 수 있게 됐다. confidence 점수를 `det_score × cls_score`로 통합하는 방식으로 제출 품질을 개선했고, Kaggle category_id 매핑 로직도 추가했다. 이 시점에 Kaggle mAP가 내부 mAP 대비 낮게 나오는 구조적 원인([P7])을 분석하였다.
+
+### Phase 7 — Kaggle 기준 E2E 평가 재검증 및 클래스 매핑 보정 (04-29)
+
+Baseline 실험 노트북에서 Kaggle 기준 E2E 지표가 내부 평가 대비 낮게 나타나 원인을 재검증했다. 이 과정에서 문제는 두 층으로 나뉘어 있었다. 첫째, Stage 2 학습/예측 대상 클래스 커버리지가 부족했다. 이는 DE와 논의한 결과 해결하였다. 둘째는, 실제로 캐글 클래스를 매핑해서 가져오는 과정에서 버그가 있었던 것이다. 
+
+다만 Kaggle 원본 기준 클래스 수 자체가 잘못 매핑된 것은 아니었다. `sprint_ai_project1_data/train_annotations`를 기준으로 확인한 결과 raw annotation의 unique `dl_idx`는 56개였고, `kaggle_class_map.json`도 동일한 56개 category_id를 모두 커버하고 있었다. 따라서 이후 작업은 Stage 2 클래스 커버리지 확장과 Kaggle 기준 평가/제출 매핑 보정을 함께 진행하는 방향으로 정리했다.
+
+이에 따라 `evaluate_pipeline.py`에서 YOLO label의 단일 class id에 의존하지 않고, GT crop manifest와 `raw_K-*` 파일명에 포함된 category id를 이용해 GT class를 복원하도록 수정했다. 또한 Stage 2가 출력하는 alias class_name 중 `kaggle_class_map.json`에 없는 항목을 `kaggle_unknown_class_map.json`으로 canonical Kaggle class_name에 매핑하도록 보정했다. 동일한 보정 흐름을 실험 노트북과 튜토리얼 노트북, README에도 반영했다.
 
 ---
 
@@ -90,24 +98,19 @@ PR #84(`feat/nighthom-2stage-pipeline`)에서 전체 파이프라인의 핵심�
 | Top-1 Acc | 0.9031 | 
 | Top-5 Acc  | 0.9774 | 
 
-### [P7] Kaggle mAP 낮음 — 클래스 커버리지 문제 - TODO
+### [P7] Kaggle mAP 낮음 — 클래스 커버리지 및 Kaggle 매핑 문제 (2026-04-29) (✅ 해결됨)
 
-Kaggle 평가 기준 57개 클래스 중 22개가 DE 제공 데이터에 포함되지 않아, 내부 mAP ≈ 0.77임에도 Kaggle mAP ≈ 0.40으로 보이는 현상으로, 이를 어떻게 해결할지 검토가 필요하다. 
+초기에는 Kaggle 평가 기준 클래스 중 일부가 DE 제공 데이터에 포함되지 않아 내부 mAP 대비 Kaggle mAP가 낮게 보이는 것으로 판단했다. 실제로 Stage 2 기준에서는 클래스 커버리지 개선이 필요했으며, baseline config의 `nc`와 `model.num_classes`를 279에서 305로 갱신해 확장된 crop class set을 반영했다.
 
-필자가 생각하는 해결방안은 다음 두 가지다.
-1. Kaggle Class 기준으로 계산
-2. 우리 모델이 받는 클래스를 기반으로 내부계산
+동시에 raw annotation을 재검증한 결과, Kaggle 원본 category 기준에서는 `train_annotations`의 unique `dl_idx`가 56개였고 `kaggle_class_map.json`도 동일한 56개 category_id를 모두 포함하고 있었다. 즉, Kaggle category_id 자체가 누락된 것이 아니라, Stage 2 class set 확장과 E2E 평가/제출 매핑 보정이 함께 필요했던 문제였다.
 
-### [P8] submission 제출 포맷 에러 - TODO 
+실제 문제는 E2E 평가에서 GT class를 YOLO label 또는 제한적인 manifest 정보로 복원하면서 Kaggle category와 정확히 연결하지 못한 점이었다. 이를 `GT crop manifest → source image key → raw_K category id → filename fallback` 순서로 복원하도록 수정했다. 이 변경 이후 Kaggle 기준 E2E 평가에서 클래스 커버리지 손실 없이 GT와 prediction을 비교할 수 있게 됐다.
 
-현행 submission 제출 파일인 make_submission.py에서의 산출물은 다음과 같다.
-| annotation_id	| image_id	| category_id	| bbox_x	| bbox_y	| bbox_w | 	bbox_h	| score | 
-|-|-|-|-|-|-|-|-|
-| 1	| ext_0-25mg-Mirapex-tab_3_jpg.rf.0b4a7ceabeba62... | 	0	| 257	| 291| 	99	| 101	| 0.495044 | 
+### [P8] submission/evaluate class_name 매핑 누락 (2026-04-29) (✅ 해결됨)
 
-2번 산출물인 image_id는 텍스트 값이 아닌, 숫자로된 image id를 내놓아야 하는데 이것이 제대로 지켜지지 않고 있다. 
+Stage 2 예측 결과 중 일부 class_name이 `kaggle_class_map.json`에 존재하지 않아 제출 생성 또는 Kaggle 기준 평가에서 누락되는 문제가 있었다. 대표적으로 `gabapentin_tab_800mg_dong_a`, `januvia_tab_50mg`, `trajenta_tab`, `kanarb_tab_60mg` 등이 Kaggle 제출용 canonical class_name과 달랐다.
 
-score도 현재 det score를 기준으로 계산되고 있는데, 이를 mAP@[75-95]로 수정하는 작업이 필요하다.
+이를 별도의 `kaggle_unknown_class_map.json`으로 관리하고, `evaluate_pipeline.py`와 `make_submission.py`에서 Stage 2 alias를 Kaggle canonical class_name으로 정규화한 뒤 `kaggle_class_map.json`을 통해 category_id로 변환하도록 보정했다. 이 작업은 모델 성능 자체를 바꾼 것이 아니라, 기존 예측 결과가 Kaggle 기준 class id로 올바르게 집계되도록 만든 평가/제출 경로 수정이다.
 
 ---
 
@@ -121,9 +124,38 @@ score도 현재 det score를 기준으로 계산되고 있는데, 이를 mAP@[75
 | Stage 2 (ResNet50, 279클래스) | Top-1 Acc | 0.9031 | 0.9042 |
 | Stage 2 | Top-5 Acc | 0.9774 | — |
 | E2E (내부 279클래스) | mAP@[0.75:0.95] | 0.7709 | 0.7763 |
-| E2E (Kaggle 57클래스, 참고용) | mAP@[0.75:0.95] | 0.3979 | 0.3754 |
+| E2E (Kaggle 기준, 초기 참고용) | mAP@[0.75:0.95] | 0.3979 | 0.3754 |
 
 Stage 1은 mAP@0.50 기준 0.99를 넘어 탐지 자체는 충분히 강력하다. Stage 2 Top-1 Acc 0.90과 E2E mAP 0.77 사이의 격차(≈0.13)는 Stage 1의 미탐지·오탐·과탐이 그대로 E2E 손실로 이어지기 때문이다. 현 시점에서 가장 큰 개선 레버리지는 Stage 1 recall을 끌어올리거나, Stage 2 분류 정확도를 높이는 두 방향이다.
+
+---
+
+## 갱신된 E2E 및 제출 성능 (2026-04-29)
+
+Kaggle 기준 E2E 평가를 재검증하면서 Stage 2 클래스 커버리지를 279개에서 305개로 확장하고, GT class 복원과 Stage 2 alias 매핑을 보정한 결과 내부 평가와 실제 Kaggle 제출 점수가 모두 개선됐다. 특히 실제 제출 점수인 `mAP@0.75:0.95`가 0.68914에서 0.90845로 상승해, 낮은 점수의 주요 원인이 모델 자체의 탐지 실패만이 아니라 클래스 커버리지 부족과 평가/제출 클래스 매핑 누락이 함께 작용한 결과였음을 확인했다.
+
+| 기준 | 이전 | 보정 후 | 변화 |
+|------|------|---------|------|
+| Kaggle 제출 mAP@0.75:0.95 | 0.68914 | 0.90845 | +0.21931 |
+
+이 개선은 `kaggle_class_map.json` 자체의 category_id 커버리지 문제가 아니라, Stage 2 class set 확장과 Stage 2 출력 class_name/Kaggle 제출 class_name 사이의 alias 차이 보정이 함께 반영된 효과다. 따라서 이후 실험에서는 Stage 2 모델 성능을 비교할 때 반드시 동일한 class set, alias 정규화, GT class 복원 기준을 적용해야 한다.
+
+---
+
+## Baseline Freeze 선언 (2026-04-29)
+
+본 보고서의 baseline은 2026-04-29 기준으로 freeze한다. 이후 실험은 아래 조건을 고정된 비교 기준으로 사용한다.
+
+| 항목 | Freeze 기준 |
+|------|-------------|
+| Stage 1 | YOLOv26n, pill 단일 클래스 탐지 |
+| Stage 2 | ResNet50 분류기, 305개 crop class set |
+| E2E 평가 | GT crop manifest / raw_K category id 기반 GT class 복원 |
+| Kaggle 매핑 | `kaggle_class_map.json` + `kaggle_unknown_class_map.json` 적용 |
+| 제출 score | `det_score × cls_score` |
+| 대표 제출 성능 | Kaggle mAP@0.75:0.95 = 0.90845 |
+
+이 시점 이후 baseline 파일과 결과는 임의로 수정하지 않고, 새로운 모델·augmentation·threshold·HPO 실험은 별도 실험명과 별도 config로 분리해 비교한다. 단, 평가/제출 재현성을 높이기 위한 문서화나 config 파일 위치 정리처럼 baseline 성능 자체를 바꾸지 않는 관리 작업은 후속 PR에서 별도로 다룬다.
 
 ---
 
@@ -132,9 +164,9 @@ Stage 1은 mAP@0.50 기준 0.99를 넘어 탐지 자체는 충분히 강력하�
 | 순위 | 내용 | 기대 효과 |
 |------|------|---------|
 | 1 | submission 제출 포맷 개선 | 제출 시 오기입 문제 해결 |
-| 2 | 클래스 커버리지 문제 | mAP 개선 | 
-| 3 | Stage 2 분류 정확도 높이기 | 분류 성능 향상 |
-| 4 | Stage 1 Crop 미탐지/과탐지 줄이기 | mAP 향상 | 
+| 2 | Stage 2 분류 정확도 높이기 | 분류 성능 향상 |
+| 3 | Stage 1 Crop 미탐지/과탐지 줄이기 | mAP 향상 |
+| 4 | class map / alias map 설정 파일 위치 정리 | 평가·제출 재현성 개선 |
 
 
 ## 다음 실험 우선순위
