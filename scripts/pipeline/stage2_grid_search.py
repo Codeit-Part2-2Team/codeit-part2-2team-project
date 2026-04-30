@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(
@@ -32,6 +33,7 @@ from scripts.pipeline.stage2_tuning_common import (
     load_base_config,
     load_search_space,
     print_best,
+    record_trial_time,
     result_row,
     save_yaml,
     select_metric,
@@ -85,11 +87,16 @@ def main() -> None:
         save_yaml(cfg, config_path)
 
         print(f"\n[grid] {trial_name}/{len(all_params):04d} params={params}")
+        t0 = time.perf_counter()
         try:
             metrics = train_stage2(cfg, data_root=args.data)
+            elapsed_sec = record_trial_time(trial_dir, time.perf_counter() - t0)
             score = select_metric(metrics, args.metric)
-            row = result_row(trial_name, params, metrics, score, config_path)
+            row = result_row(
+                trial_name, params, metrics, score, config_path, elapsed_sec
+            )
         except Exception as exc:  # noqa: BLE001 - trial 실패를 기록하고 계속 진행
+            elapsed_sec = record_trial_time(trial_dir, time.perf_counter() - t0)
             row = {
                 "trial": trial_name,
                 "status": "failed",
@@ -97,11 +104,13 @@ def main() -> None:
                 "top1_acc": "",
                 "top5_acc": "",
                 "n_classes": "",
+                "elapsed_sec": round(elapsed_sec, 1),
                 "config": str(config_path),
                 "params": json.dumps(params, sort_keys=True),
                 "error": repr(exc),
             }
             print(f"[grid] failed: {exc!r}")
+        print(f"[grid] {trial_name} elapsed={elapsed_sec:.1f}s")
 
         append_result(output_dir / "results.csv", row)
         write_json(trial_dir / "result.json", row)

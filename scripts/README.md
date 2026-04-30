@@ -692,17 +692,18 @@ train:
 experiments/stage2_optuna/
 ├── search_space.yaml
 ├── study.db              # Optuna 사용 시
-├── results.csv           # trial별 score/top1/top5/params/status
+├── results.csv           # trial별 score/top1/top5/elapsed_sec/params/status
 ├── best_trial.json       # 최고 trial 요약
 └── trial_0000/
     ├── config.yaml       # trial에 실제 사용한 config
     ├── result.json       # trial 결과 한 줄 요약
+    ├── timings.json      # hpo_trial 소요 시간
     └── weights/
         ├── best.pt
         └── last.pt
 ```
 
-`results.csv`의 `score`는 `--metric`으로 선택한 objective 값이다.
+`results.csv`의 `score`는 `--metric`으로 선택한 objective 값이다. trial 소요 시간은 각 `trial_*/timings.json`의 `hpo_trial`에 저장되며, 비교 편의를 위해 `results.csv`와 `result.json`에도 `elapsed_sec`로 함께 기록한다.
 
 튜닝 결과를 채택하기 전에는 상위 trial의 `best.pt`로 Stage 2 prediction을 만들고, `evaluate_pipeline.py`로 Kaggle 기준 E2E mAP를 재확인한다.
 

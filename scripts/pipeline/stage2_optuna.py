@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +32,7 @@ from scripts.pipeline.stage2_tuning_common import (
     build_trial_config,
     load_base_config,
     load_search_space,
+    record_trial_time,
     result_row,
     save_yaml,
     select_metric,
@@ -123,9 +125,11 @@ def main() -> None:
         save_yaml(cfg, config_path)
 
         print(f"\n[optuna] {trial_name} params={params}")
+        t0 = time.perf_counter()
         try:
             metrics = train_stage2(cfg, data_root=args.data)
         except Exception as exc:  # noqa: BLE001 - 실패 trial도 CSV에 남긴다
+            elapsed_sec = record_trial_time(trial_dir, time.perf_counter() - t0)
             row = {
                 "trial": trial_name,
                 "status": "failed",
@@ -133,6 +137,7 @@ def main() -> None:
                 "top1_acc": "",
                 "top5_acc": "",
                 "n_classes": "",
+                "elapsed_sec": round(elapsed_sec, 1),
                 "config": str(config_path),
                 "params": json.dumps(params, sort_keys=True),
                 "error": repr(exc),
@@ -141,9 +146,10 @@ def main() -> None:
             write_json(trial_dir / "result.json", row)
             raise
 
+        elapsed_sec = record_trial_time(trial_dir, time.perf_counter() - t0)
         score = select_metric(metrics, args.metric)
 
-        row = result_row(trial_name, params, metrics, score, config_path)
+        row = result_row(trial_name, params, metrics, score, config_path, elapsed_sec)
         append_result(output_dir / "results.csv", row)
         write_json(trial_dir / "result.json", row)
 
@@ -151,6 +157,8 @@ def main() -> None:
         trial.set_user_attr("top1_acc", metrics.get("top1_acc"))
         trial.set_user_attr("top5_acc", metrics.get("top5_acc"))
         trial.set_user_attr("n_classes", metrics.get("n_classes"))
+        trial.set_user_attr("elapsed_sec", round(elapsed_sec, 1))
+        print(f"[optuna] {trial_name} elapsed={elapsed_sec:.1f}s")
         return score
 
     study = optuna.create_study(

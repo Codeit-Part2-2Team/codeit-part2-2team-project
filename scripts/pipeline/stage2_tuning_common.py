@@ -30,6 +30,7 @@ from torch.utils.data import DataLoader, WeightedRandomSampler
 from src.data.stage2_dataset import Stage2Dataset
 from src.models.classifier import Classifier
 from src.utils.config import load_config
+from src.utils.timing import record_time
 
 
 DEFAULT_GRID_SPACE = {
@@ -57,6 +58,7 @@ RESULT_FIELDS = [
     "top1_acc",
     "top5_acc",
     "n_classes",
+    "elapsed_sec",
     "config",
     "params",
     "error",
@@ -178,6 +180,13 @@ def train_stage2(cfg: dict, data_root: str | Path | None = None) -> dict:
     }
 
 
+def record_trial_time(trial_dir: str | Path, elapsed_sec: float) -> float:
+    """Record one HPO trial duration in trial_dir/timings.json."""
+    elapsed_sec = round(elapsed_sec, 1)
+    record_time(trial_dir, "hpo_trial", elapsed_sec)
+    return elapsed_sec
+
+
 def select_metric(metrics: dict, metric: str) -> float:
     try:
         return float(metrics[metric])
@@ -213,6 +222,7 @@ def result_row(
     metrics: dict,
     score: float,
     config_path: Path,
+    elapsed_sec: float | None = None,
 ) -> dict:
     return {
         "trial": trial_name,
@@ -221,6 +231,7 @@ def result_row(
         "top1_acc": metrics.get("top1_acc"),
         "top5_acc": metrics.get("top5_acc"),
         "n_classes": metrics.get("n_classes"),
+        "elapsed_sec": round(elapsed_sec, 1) if elapsed_sec is not None else "",
         "config": str(config_path),
         "params": json.dumps(params, sort_keys=True),
         "error": "",
