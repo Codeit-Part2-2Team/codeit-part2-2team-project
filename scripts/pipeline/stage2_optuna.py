@@ -176,7 +176,9 @@ def main() -> None:
         "user_attrs": study.best_trial.user_attrs,
     }
     write_json(output_dir / "best_trial.json", best)
-    print(f"[best] trial_{study.best_trial.number:04d} {args.metric}={study.best_value:.4f}")
+    print(
+        f"[best] trial_{study.best_trial.number:04d} {args.metric}={study.best_value:.4f}"
+    )
 
 
 if __name__ == "__main__":

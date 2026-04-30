@@ -56,9 +56,6 @@ if root is None:
 sys.path.insert(0, str(root))
 
 
-
-
-
 _IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"]
 
 
