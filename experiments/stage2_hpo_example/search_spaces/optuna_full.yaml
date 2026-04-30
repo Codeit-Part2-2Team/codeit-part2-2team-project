@@ -1,0 +1,43 @@
+# Optuna — 종합 탐색 (아키텍처 + 학습률 + 배치 + 정규화)
+#
+# 목적: 탐색 공간 전체를 한 번에 커버
+# 권장 trial 수: 50~100 (시간 여유 있을 때 사용)
+# 예상 시간: trial당 약 15분 × 50 = 약 12시간
+
+model:
+  name:
+    type: categorical
+    choices:
+      - resnet50
+      - efficientnet_b2
+      - efficientnetv2_s
+
+train:
+  lr0:
+    type: float
+    low: 0.000005
+    high: 0.001
+    log: true
+
+  lrf:
+    type: float
+    low: 0.001
+    high: 0.1
+    log: true
+
+  weight_decay:
+    type: float
+    low: 0.00005
+    high: 0.05
+    log: true
+
+  label_smoothing:
+    type: float
+    low: 0.0
+    high: 0.2
+
+  batch:
+    type: int
+    low: 16
+    high: 64
+    step: 16   # 16, 32, 48, 64
