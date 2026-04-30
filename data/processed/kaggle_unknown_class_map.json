@@ -1,0 +1,11 @@
+{
+  "_comment": "Stage 2 class_name aliases that should be submitted as Kaggle class_map entries.",
+  "gabapentin_tab_800mg_dong_a": "gabapentin_800mg_tab",
+  "januvia_tab_50mg": "januvia_50mg_tab",
+  "trajenta_tab": "trajenta_5mg_tab",
+  "kanarb_tab_60mg": "kanarb_60mg_tab",
+  "suspen_8_hours_er_tab": "suspen_8h_er_tab",
+  "eswonamp_tab_20mg": "eswonamp_20mg_tab",
+  "rabiet_tab20mg": "rabiet_20mg_tab",
+  "stogar_tab_10mg": "stogar_10mg_tab"
+}

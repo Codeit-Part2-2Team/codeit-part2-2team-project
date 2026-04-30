@@ -665,6 +665,15 @@ python scripts/pipeline/evaluate_pipeline.py \
     --s1-crops  experiments/{EXP}/stage1_crops/crops_manifest.json \
     --s2-preds  experiments/{EXP}/stage2_predictions.json
 
+# Kaggle canonical class 기준 평가 + Stage 2 alias 정규화
+python scripts/pipeline/evaluate_pipeline.py \
+    --gt-labels data/processed/labels/val \
+    --gt-images data/processed/images/val \
+    --s1-crops  experiments/{EXP}/stage1_crops/crops_manifest.json \
+    --s2-preds  experiments/{EXP}/stage2_predictions.json \
+    --kaggle-classes data/processed/kaggle_class_map.json \
+    --unknown-class-map data/processed/kaggle_unknown_class_map.json
+
 # 클래스별 AP 상위 20개 추가 출력
 python scripts/pipeline/evaluate_pipeline.py ... --per-class
 ```
@@ -680,8 +689,9 @@ mAP@0.75        : 0.xxxx
 ```
 
 **주의:**
-- GT class는 파일명에서 자동 추출 (`_extract_class_name` 정규화)
-- 파일명에 약품명이 없는 iOS/IMG 이미지는 `known_classes` 필터로 자동 제외
+- GT bbox는 YOLO label에서 읽고, GT class는 GT crop manifest / Roboflow source key / `raw_K-*` 파일명의 category_id로 복원한다.
+- YOLO label은 Stage 1용 `pill=0` 단일 클래스이므로 E2E class 평가에는 별도 class 복원이 필요하다.
+- `--unknown-class-map`은 Stage 2가 출력한 alias class_name을 Kaggle canonical class_name으로 치환해 평가한다.
 - score = `det_score × cls_score` (crops_manifest × stage2_predictions)
 
 ---
@@ -710,11 +720,11 @@ mAP@0.75        : 0.xxxx
    → experiments/{EXP}/stage2_predictions.json
 
 6️⃣ [선택] End-to-end mAP 평가
-   evaluate_pipeline.py
+   evaluate_pipeline.py --kaggle-classes ... --unknown-class-map ...
    → mAP@[0.50:0.95], mAP@[0.75:0.95] 출력
 
 7️⃣ Kaggle 제출 CSV 생성
-   make_submission.py --class-map kaggle_class_map.json
+   make_submission.py --class-map kaggle_class_map.json --unknown-class-map ...
    → submissions/submission.csv
       score = det_score × cls_score
 ```
