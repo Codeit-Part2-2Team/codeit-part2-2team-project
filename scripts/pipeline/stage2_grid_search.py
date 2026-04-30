@@ -117,7 +117,10 @@ def main() -> None:
         if row.get("status") == "ok":
             results.append(row)
 
-    write_json(output_dir / "best_trial.json", max(results, key=lambda r: r["score"]) if results else {})
+    write_json(
+        output_dir / "best_trial.json",
+        max(results, key=lambda r: r["score"]) if results else {},
+    )
     print_best(results, args.metric)
 
 

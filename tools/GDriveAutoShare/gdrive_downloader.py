@@ -180,9 +180,12 @@ def download_zip(record: dict, api_key: str, output_dir: str | Path = ".") -> Pa
         total = int(resp.headers.get("Content-Length", 0)) or expected_size
         sha = hashlib.sha256()
 
-        with open(dest, "wb") as f, tqdm(
-            total=total, unit="B", unit_scale=True, desc=dest.name, ncols=80
-        ) as bar:
+        with (
+            open(dest, "wb") as f,
+            tqdm(
+                total=total, unit="B", unit_scale=True, desc=dest.name, ncols=80
+            ) as bar,
+        ):
             for chunk in resp.iter_content(chunk_size=8 * 1024 * 1024):
                 f.write(chunk)
                 sha.update(chunk)

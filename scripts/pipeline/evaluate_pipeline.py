@@ -243,9 +243,7 @@ def _resolve_raw_k_classes(
     return classes
 
 
-def _build_manifest_class_lookup(
-    crops_root: Path, split: str
-) -> dict[str, deque[str]]:
+def _build_manifest_class_lookup(crops_root: Path, split: str) -> dict[str, deque[str]]:
     """GT crop manifest에서 {원본 image_id → class_name 목록}을 빌드한다.
 
     ImageFolder 기반 GT crop manifest에는 bbox가 없으므로 bbox는 YOLO label에서
@@ -347,9 +345,11 @@ def load_gt(
             class_name = (
                 raw_k_classes.popleft()
                 if raw_k_classes
-                else manifest_classes.popleft()
-                if manifest_classes
-                else fallback_class_name
+                else (
+                    manifest_classes.popleft()
+                    if manifest_classes
+                    else fallback_class_name
+                )
             )
             gt[stem].append(
                 {
