@@ -7,8 +7,8 @@
 
 ## Step 1. 기본 지표 확인
 
-- [ ] GT bbox 기준 Top-1 Accuracy
-- [ ] GT bbox 기준 Top-5 Accuracy
+- [x] GT bbox 기준 Top-1 Accuracy
+- [x] GT bbox 기준 Top-5 Accuracy
 - [ ] Pred bbox 기준 Top-1 Accuracy
 - [ ] Pred bbox 기준 Top-5 Accuracy
 - [ ] GT vs Pred Gap 계산 (GT Top-1 - Pred Top-1)
@@ -83,10 +83,10 @@
 
 ## Step 8. Kaggle mAP 미회복 시 추가 점검
 
-- [ ] class index / category_id mapping mismatch 확인
-- [ ] Kaggle 57-class 커버리지 확인
+- [x] class index / category_id mapping mismatch 확인 → 완료 (PR #144, #145)
+- [x] Kaggle 57-class 커버리지 확인 → 완료 (305cls 보강)
 - [ ] submission 샘플 10개 수동 검증
-- [ ] 내부 metric vs Kaggle metric 정의 차이 확인
+- [x] 내부 metric vs Kaggle metric 정의 차이 확인 → Kaggle mAP 0.9365 확인 완료
 
 ---
 
@@ -94,13 +94,13 @@
 
 | 항목 | GT 기준 | Pred 기준 | Gap | 판단 |
 |------|---------|-----------|-----|------|
-| Top-1 Accuracy | - | - | - | - |
-| Top-5 Accuracy | - | - | - | - |
+| Top-1 Accuracy | 0.8750 | - | - | Pred 측정 대기 |
+| Top-5 Accuracy | 0.9612 | - | - | Pred 측정 대기 |
 | raw Top-1 | - | - | - | - |
 | external Top-1 | - | - | - | - |
 
-**병목 위치**: (Stage 1 / Stage 2 / 전체 안정)
+**병목 위치**: 측정 대기 (Pred bbox 기준 성능 확인 후 판단)
 
-**EL (도혁) 코멘트**:
+**EL (도혁) 코멘트**: GT bbox 기준 Top-1 0.8750 / Top-5 0.9612 확인 완료. Pred bbox 기준 수치는 승준(ME) EfficientNet-B2 학습 완료 후 측정 예정.
 
-**PM (호정) 보고 필요 여부**: (Y / N)
+**PM (호정) 보고 필요 여부**: N (Pred 측정 완료 후 Y로 변경)
