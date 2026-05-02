@@ -59,12 +59,13 @@
 
 ## Kaggle mAP 저하 원인 체크
 - [x] submission image_id 포맷 확인 → 수정 완료 (ME (승준))
-- [ ] category_id 매핑 정합성 확인 → 재제출 후 점검 예정
-- [ ] Kaggle 평가 클래스 커버리지 확인 → 재제출 후 점검 예정
-- [ ] class index / label mapping mismatch 확인 → 재제출 후 점검 예정
+- [x] category_id 매핑 정합성 확인 → 완료 (PR #144, #145)
+- [x] Kaggle 평가 클래스 커버리지 확인 → 완료 (305cls 보강, DE 소원)
+- [x] class index / label mapping mismatch 확인 → 완료 (PR #144, #145)
 
 ## 다음 액션
-submission 재제출 결과 확인 후 Kaggle mAP 회복 여부 기준으로 Stage 1 신뢰성 검증 진행
+- [x] submission 재제출 후 Kaggle mAP 회복 확인 완료 (0.9458, 2026-04-30)
+- [ ] Stage 1 신뢰성 검증 (raw only mAP / multi-object recall) — 진행 예정
 
 ## EL (도혁) 코멘트
 Baseline 기준선 확보 완료. mAP@50 0.9947은 external 단일 알약 편향 가능성 있어 raw only / multi-object 기준 별도 검증 필요. Kaggle mAP 저하는 Stage 1보다 submission 포맷 문제가 1순위 판단.
