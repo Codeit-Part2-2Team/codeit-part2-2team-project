@@ -10,9 +10,9 @@
 
 | 항목 | 기존 baseline | 새 baseline | 비고 |
 |------|-------------|-------------|------|
-| 전체 Top-1 Acc (val) | 0.9031 | - | 하락 가능성 있음 (정상) |
-| 전체 Top-5 Acc (val) | 0.9774 | - | - |
-| Kaggle LB mAP | 0.68914 | - | 핵심 지표 |
+| 전체 Top-1 Acc (val) | 0.9031 | 0.8750 | 하락 but Kaggle LB 상승 (정상) |
+| 전체 Top-5 Acc (val) | 0.9774 | 0.9612 | - |
+| Kaggle LB mAP | 0.68914 | 0.9458 | 핵심 지표 — 회복 완료 |
 | 학습 시간 | 119.7분 | - | - |
 
 > 전체 Top-1 하락이 있어도 Kaggle LB 상승이면 긍정적으로 판단
@@ -86,13 +86,13 @@
 
 | 항목 | 결과 | 판단 |
 |------|------|------|
-| 전체 Top-1 (val) | - | - |
-| 전체 Top-5 (val) | - | - |
-| Kaggle LB | - | - |
-| GT vs Pred gap | - | - |
-| rare class 이상 신호 | - | - |
-| HPO 진입 가능 여부 | - | - |
+| 전체 Top-1 (val) | 0.8750 | 기존 대비 하락, Kaggle LB 상승으로 정상 판단 |
+| 전체 Top-5 (val) | 0.9612 | - |
+| Kaggle LB | 0.9458 | 회복 완료 (305cls, mapping 수정) |
+| GT vs Pred gap | - | 측정 예정 |
+| rare class 이상 신호 | 없음 | 정상 |
+| HPO 진입 가능 여부 | 완료 | Grid Search + Optuna 진행 완료 |
 
-**EL (도혁) 코멘트**:
+**EL (도혁) 코멘트**: 305cls 기반 새 baseline 확정 완료. Kaggle LB 0.9458 회복. Grid Search 12조합 → Optuna 15 trials 완료 (Best Top-1 0.9041). GT vs Pred gap은 EfficientNet-B2 학습 완료 후 측정 예정.
 
-**PM (호정) 보고 필요 여부**: (Y / N)
+**PM (호정) 보고 필요 여부**: Y (Optuna 결과 보고 완료 — PR #160)
