@@ -61,15 +61,15 @@
 
 ## CV-LB 괴리 분석
 - Local CV (val Top-1): 0.9031
-- Public LB (E2E mAP@[0.75:0.95]): 0.3754
-- Gap: -0.5277 (E2E 기준)
-- 괴리 해석: submission 포맷 수정 후 재확인 필요 (P0)
+- Public LB (E2E mAP@[0.75:0.95]): 0.9458 (305cls, mapping 수정 완료)
+- Gap: +0.0427 (E2E 기준)
+- 괴리 해석: 포맷 수정 + 305cls 보강으로 해소 완료 (2026-04-30)
 
 ## Kaggle mAP 저하 원인 체크
 - [x] submission image_id 포맷 확인 → 수정 완료 (ME (승준))
-- [ ] category_id 매핑 정합성 확인 → 재제출 후 점검 예정
-- [ ] Kaggle 평가 클래스 커버리지 확인 → 재제출 후 점검 예정
-- [ ] class index / label mapping mismatch 확인 → 재제출 후 점검 예정
+- [x] category_id 매핑 정합성 확인 → 완료 (PR #144, #145)
+- [x] Kaggle 평가 클래스 커버리지 확인 → 완료 (305cls 보강, DE 소원)
+- [x] class index / label mapping mismatch 확인 → 완료 (PR #144, #145)
 
 ## 다음 액션
 submission 재제출 결과 확인 후 Kaggle mAP 회복 여부 기준으로 GT vs Pred 분리 분석 진행 (#80 이슈 연계)
