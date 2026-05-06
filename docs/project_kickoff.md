@@ -99,7 +99,7 @@ main          ← PR + 1인 리뷰 필수, Direct push 금지
 
 | 분류 | 도구 |
 |------|------|
-| 모델 | YOLOv8n (Baseline), YOLOv8s (최종 후보) |
+| 모델 | YOLOv26n (Stage 1 Detection), EfficientNetV2-S (Stage 2 Classification, Final Model) |
 | 학습 환경 | Colab Pro / Kaggle Kernel / 로컬 WSL2 RTX 5050 |
 | 데이터 | Ultralytics YAML 포맷 (OT 후 확정) |
 | 코드 품질 | ruff, black, PEP 8 |
