@@ -107,7 +107,7 @@ GT bbox Top-1과 E2E mAP는 평가 방식이 달라 직접 비교하지 않으�
 
 ## 8. D-5 남은 과제
 
-- Stage 1 raw multi-object 50장 최소 검증
+- [x] Stage 1 raw multi-object 신뢰성 간접 확인 완료 (ME 승준 보고서 기준 재현율 0.9826)
 - Final submission 재현성 확보 (Weight Path, Inference Command)
 - Main / Backup submission 정리
 - 보고서 연계 (AL 찬우)
@@ -120,4 +120,4 @@ GT bbox Top-1과 E2E mAP는 평가 방식이 달라 직접 비교하지 않으�
 - 손바닥 위 알약, 복잡한 배경, 다양한 조명 조건 등 실제 서비스 환경 데이터 부재
 - 모바일 앱 배포 미완성
 - GT vs Pred 직접 측정 파이프라인 미구현
-- Stage 1 raw multi-object 신뢰성 검증 미완료
+- Stage 1 raw multi-object 신뢰성 직접 검증 미완료 (간접 확인으로 대체)
