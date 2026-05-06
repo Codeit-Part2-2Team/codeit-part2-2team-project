@@ -4,6 +4,7 @@
 > 실행 조건: new_baseline_checklist.md Step 4 이상 신호 발견 시
 > PM (호정) 부재 중 — 이상 신호 확인 후 PM 복귀 시 보고 원칙
 > 현재 상태: 미실행 — 305cls baseline 결과 이상 신호 없음 확인 (2026-05-03 기준)
+> 이상 신호 없음으로 split 무결성 검증 불필요 판단. HPO 진행 완료.
 
 ---
 
@@ -80,6 +81,6 @@ EL 판단:
 | rare class 분포 | - | - |
 | 최종 판단 | - | - |
 
-**EL (도혁) 코멘트**:
+**EL (도혁) 코멘트**: 305cls baseline 결과 이상 신호 없음 확인. Split 무결성 검증 실행 조건 미충족으로 미실행. HPO 진행 완료 (Grid Search → Optuna → 모델 교체 → Final Model 확정).
 
-**PM (호정) 보고 완료 여부**: (Y / N)
+**PM (호정) 보고 완료 여부**: Y (HPO 결과 보고 완료)
