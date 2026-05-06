@@ -64,11 +64,11 @@
 - [x] class index / label mapping mismatch 확인 → 완료 (PR #144, #145)
 
 ## 다음 액션
-- [x] submission 재제출 후 Kaggle mAP 회복 확인 완료 (0.9458, 2026-04-30)
-- [ ] Stage 1 신뢰성 검증 (raw only mAP / multi-object recall) — 진행 예정
+- [x] submission 재제출 후 Kaggle mAP 회복 확인 완료 (Public LB 0.90845 / 내부 E2E test 0.9458, 2026-04-30)
+- [x] Stage 1 신뢰성 검증 — ME (승준) 보고서 기준 재현율 0.9826 / 정밀도 0.9963 간접 확인 완료 (2026-05-06)
 
 ## EL (도혁) 코멘트
-Baseline 기준선 확보 완료. mAP@50 0.9947은 external 단일 알약 편향 가능성 있어 raw only / multi-object 기준 별도 검증 필요. Kaggle mAP 저하는 Stage 1보다 submission 포맷 문제가 1순위 판단.
+Baseline 기준선 확보 완료. mAP@50 0.9947은 external 단일 알약 편향 가능성 있었으나 ME (승준) 보고서 기준 재현율 0.9826 / 정밀도 0.9963으로 신뢰성 간접 확인 완료. Kaggle mAP 저하는 submission 포맷 문제가 원인이었으며 305cls 보강 후 Public LB 0.90845 회복.
 
 ## 가중치/결과 위치
 - 가중치: Google Drive 공유 (EL (도혁) 문의)
