@@ -94,13 +94,13 @@
 
 | 항목 | GT 기준 | Pred 기준 | Gap | 판단 |
 |------|---------|-----------|-----|------|
-| Top-1 Accuracy | 0.8750 | - | - | Pred 측정 대기 |
-| Top-5 Accuracy | 0.9612 | - | - | Pred 측정 대기 |
+| Top-1 Accuracy | 0.8883 | - | - | Pred 측정 대기 |
+| Top-5 Accuracy | 0.9745 | - | - | Pred 측정 대기 |
 | raw Top-1 | - | - | - | - |
 | external Top-1 | - | - | - | - |
 
 **병목 위치**: 측정 대기 (Pred bbox 기준 성능 확인 후 판단)
 
-**EL (도혁) 코멘트**: GT bbox 기준 Top-1 0.8750 / Top-5 0.9612 확인 완료. Pred bbox 기준 수치는 승준(ME) EfficientNet-B2 학습 완료 후 측정 예정.
+**EL (도혁) 코멘트**: GT bbox 기준 Top-1 0.8883 / Top-5 0.9745 확인 완료 (Final Model: EfficientNetV2-S lr0=0.0003 기준). Pred bbox 기준 수치는 ME (승준) 측정 예정.
 
 **PM (호정) 보고 필요 여부**: N (Pred 측정 완료 후 Y로 변경)
