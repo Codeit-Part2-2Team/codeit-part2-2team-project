@@ -50,7 +50,7 @@ jupyter notebook notebooks/04_pipeline_tutorial.ipynb
          ↓
 ┌─ Stage 2: 분류 (Classification) ───┐
 │                                     │
-│  모델: ResNet50                     │
+│  모델: EfficientNetV2-S (Final)     │
 │  입력: crop 이미지들                │
 │  출력: 약품명 + 신뢰도              │
 │  {crop_id, class_name, score}      │
@@ -159,7 +159,7 @@ jupyter notebook notebooks/04_pipeline_tutorial.ipynb
 입력: data/processed/crops/{train,val}/
       (crop 이미지들 + 폴더명으로 자동 레이블링)
 
-↓ ResNet50 학습
+↓ EfficientNetV2-S 학습 (Final Model)
 
 출력: experiments/stage2_classifier/weights/best.pt
 
@@ -224,7 +224,7 @@ Top-5 Accuracy = 상위 5순위에 정답이 포함된 비율
 ```
 
 **목표값**:
-- Stage 2: `Top-1 > 0.80`, `Top-5 > 0.95`
+- Stage 2: `Top-1 > 0.88`, `Top-5 > 0.97` (Final Model 달성: 0.8883 / 0.9745)
 
 ---
 
@@ -356,4 +356,4 @@ rm -rf experiments/{EXP_NAME}/weights
 ---
 
 **작성**: 2026-04-24  
-**최종 수정**: 2026-04-24
+**최종 수정**: 2026-05-06

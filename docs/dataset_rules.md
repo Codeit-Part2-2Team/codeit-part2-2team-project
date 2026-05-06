@@ -10,7 +10,7 @@
 |------|------|------|
 | v1.0 | raw + external 통합 (단일 클래스 pill 기준) | 완료 (2026-04-22) |
 | v1.1 | Stage 1용 수정본 | 완료 (2026-04-24) |
-| v2.0 | 클래스 추가/수정 시 새 버전으로 분리 | 예정 |
+| v2.0 | 305cls 보강 + 누락 26클래스 복구 (DE 소원 cls_v3) | 완료 (2026-04-30) |
 
 ## Freeze 규칙
 
@@ -64,8 +64,8 @@ data:
 
 ```
 data/
-├── raw/          # 원본 데이터 (56클래스, 수정 금지)
-├── external/     # 외부 데이터 (371클래스)
+├── raw/          # 원본 데이터 (57클래스, 수정 금지)
+├── external/     # 외부 데이터 (305클래스, cls_v3 기준)
 └── processed/
     └── dataset_v1.0/   # Freeze 완료 데이터셋
         ├── train/
@@ -79,7 +79,7 @@ data/
 | Stage | 사용 데이터 | 클래스 | 비고 |
 |-------|-----------|--------|------|
 | Stage 1 (YOLO) | raw + external | pill (단일 클래스) | bbox 탐지만 담당 |
-| Stage 2 (Classifier) | raw + external | 브랜드명 (371 클래스) | bbox 크롭 후 분류 |
+| Stage 2 (Classifier) | raw + external | 브랜드명 (305 클래스, cls_v3) | bbox 크롭 후 분류 |
 
 ## Stage 2 크롭 규칙
 

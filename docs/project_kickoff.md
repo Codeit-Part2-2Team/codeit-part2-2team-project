@@ -99,7 +99,7 @@ main          ← PR + 1인 리뷰 필수, Direct push 금지
 
 | 분류 | 도구 |
 |------|------|
-| 모델 | YOLOv8n (Baseline), YOLOv8s (최종 후보) |
+| 모델 | YOLOv26n (Stage 1 Detection), EfficientNetV2-S (Stage 2 Classification, Final Model) |
 | 학습 환경 | Colab Pro / Kaggle Kernel / 로컬 WSL2 RTX 5050 |
 | 데이터 | Ultralytics YAML 포맷 (OT 후 확정) |
 | 코드 품질 | ruff, black, PEP 8 |
@@ -172,5 +172,7 @@ main          ← PR + 1인 리뷰 필수, Direct push 금지
 
 | 날짜 | 변경 내용 | 작성자 |
 |------|-----------|--------|
-| 2026-04-20 | 초안 작성 | 호정 |
-| (OT 후) | 평가 지표, 어노테이션 포맷, 클래스 수, 제출 포맷 갱신 예정 | - |
+| 2026-04-20 | 초안 작성 | PM (호정) |
+| 2026-04-20 | OT 완료, 평가 지표 확정 (Kaggle mAP@[0.75:0.95]), 클래스 수 57cls 확정 | PM (호정) |
+| 2026-04-30 | 2-Stage 파이프라인 확정 (YOLOv26n + CNN 분류기), 305cls 기준으로 변경 | EL (도혁) |
+| 2026-05-04 | Final Model 확정 (EfficientNetV2-S lr0=0.0003, Kaggle LB 0.96044) | EL (도혁) |

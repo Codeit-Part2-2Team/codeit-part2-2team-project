@@ -206,3 +206,34 @@ albumentations:
 - 실험 비교 시에는 한 번에 한두 개 transform만 바꾸고 나머지는 고정한다
 - `downscale + compression + blur`를 동시에 크게 올리는 조합은 피한다
 - Stage 2에서는 flip과 강한 geometry transform은 기본 정책에서 제외한다
+
+---
+
+## 실제 적용 결과 — DE (소원) cls_v3 기준 (2026-04-30)
+
+> 소원 보고서 기준 실제 적용된 증강 전략 요약
+
+### Stage 2 CNN 분류 모델 차등 증강 전략
+
+| Train 구간 | 목표 train 수 | 증강 강도 | 적용 증강 기법 |
+|-----------|-------------|---------|--------------|
+| 0~10장 | 35장 | 매우 적극 | Rotation(180), Affine(t=0.08, s=0.85~1.15), ColorJitter(0.20), GaussianBlur(p=0.25), RandomPerspective(p=0.20) |
+| 11~20장 | 55장 | 적극 | Rotation(180), Affine(t=0.06, s=0.90~1.10), ColorJitter(0.15), GaussianBlur(p=0.15) |
+| 21~30장 | 70장 | 적극 | Rotation(180), Affine(t=0.05, s=0.90~1.10), ColorJitter(0.12) |
+| 31~40장 | 70장 | 중간 | Rotation(180), Affine(t=0.03, s=0.95~1.05), ColorJitter(0.08) |
+| Hytrin | 70장 | 다운샘플링 | 품질 낮은 이미지 제외 후 70장 선택 |
+
+### 공통 제외 증강
+
+- **HorizontalFlip / VerticalFlip**: 알약 표면 각인(글자, 마크)이 반전되면 다른 약으로 오인될 수 있음
+- **RandomErasing**: 알약 식별에 필요한 표면 정보를 의도적으로 제거하는 것은 부적절
+
+### val/test 처리
+
+- val과 test 데이터는 증강 없이 원본 그대로 복사하여 평가 일관성 유지
+
+### 누락 클래스 복구 (cls_v3 패치)
+
+- 누락 26개 클래스에 대해 동일한 증강 기법 적용
+- 클래스당 목표 50장 생성
+- split: train 70% / val 15% / test 15%
