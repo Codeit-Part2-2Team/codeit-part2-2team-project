@@ -99,8 +99,8 @@
 | raw Top-1 | - | - | - | - |
 | external Top-1 | - | - | - | - |
 
-**병목 위치**: 측정 대기 (Pred bbox 기준 성능 확인 후 판단)
+**병목 위치**: E2E mAP 기준 간접 추정 (val 0.9361 / test 0.9215)
 
-**EL (도혁) 코멘트**: GT bbox 기준 Top-1 0.8883 / Top-5 0.9745 확인 완료 (Final Model: EfficientNetV2-S lr0=0.0003 기준). Pred bbox 기준 수치는 ME (승준) 측정 예정.
+**EL (도혁) 코멘트**: Pred bbox 기준 직접 측정은 Inference crop 라벨 부재로 구조적으로 불가능함을 확인 (ME 승준 확인). E2E mAP val 0.9361 / test 0.9215를 Pred 기준 성능으로 간접 해석. GT Top-1 0.8883 대비 E2E mAP 0.9361로 구조 안정으로 판단.
 
-**PM (호정) 보고 필요 여부**: N (Pred 측정 완료 후 Y로 변경)
+**PM (호정) 보고 필요 여부**: Y (분석 완료)
