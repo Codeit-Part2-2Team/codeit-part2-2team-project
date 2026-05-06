@@ -58,7 +58,8 @@
 
 ## CV-LB 괴리 분석
 - Local CV (val Top-1): 0.9031
-- Public LB (E2E mAP@[0.75:0.95]): 0.9458 (305cls, mapping 수정 완료)
+- 내부 E2E mAP@[0.75:0.95] test: 0.9458 (305cls, mapping 수정 완료)
+- Kaggle Public LB: 0.90845 (submission_baseline2 기준)
 - Gap: +0.0427 (E2E 기준)
 - 괴리 해석: 포맷 수정 + 305cls 보강으로 해소 완료 (2026-04-30)
 
@@ -69,7 +70,7 @@
 - [x] class index / label mapping mismatch 확인 → 완료 (PR #144, #145)
 
 ## 다음 액션
-- [x] submission 재제출 후 Kaggle mAP 회복 확인 완료 (0.9458, 2026-04-30)
+- [x] submission 재제출 후 Kaggle mAP 회복 확인 완료 (Public LB 0.90845, 내부 E2E test 0.9458, 2026-04-30)
 - [x] GT vs Pred 분리 분석 완료 — Pred bbox 직접 측정 불가 확인, E2E mAP proxy로 간접 확인
 - [ ] Final Model (EfficientNetV2-S lr0=0.0003) 기준 결과는 stage2_log 별도 문서 참고
 
