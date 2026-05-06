@@ -58,7 +58,7 @@ EL (Experiment Lead)은 실험 설계, HPO 실행, 결과 취합, Kaggle 제출 
 
 | 모델 | GT Top-1 | Kaggle LB | 비고 |
 |------|----------|-----------|------|
-| ResNet50 (Baseline) | 0.8750 | 0.9365 | 기준선 |
+| ResNet50 (Baseline) | 0.8750 | 0.90845 | 기준선 (Public LB) / 내부 E2E val 0.9365 |
 | ResNet50 (Optuna) | 0.9041 | - | HPO 최적값 |
 | EfficientNet-B2 | 0.8932 | 0.94731 | Optuna 파라미터 적용 |
 | EfficientNetV2-S (lr0 미조정) | 0.8726 | 0.95028 | lr0 과다, epoch 33 정체 |
