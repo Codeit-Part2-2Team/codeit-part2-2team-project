@@ -94,13 +94,13 @@
 
 | 항목 | GT 기준 | Pred 기준 | Gap | 판단 |
 |------|---------|-----------|-----|------|
-| Top-1 Accuracy | 0.8750 | - | - | Pred 측정 대기 |
-| Top-5 Accuracy | 0.9612 | - | - | Pred 측정 대기 |
+| Top-1 Accuracy | 0.8883 | - | - | Pred 측정 대기 |
+| Top-5 Accuracy | 0.9745 | - | - | Pred 측정 대기 |
 | raw Top-1 | - | - | - | - |
 | external Top-1 | - | - | - | - |
 
-**병목 위치**: 측정 대기 (Pred bbox 기준 성능 확인 후 판단)
+**병목 위치**: Pred bbox 기준 직접 Top-1 산출 불가 — E2E mAP를 최종 파이프라인 성능 proxy로 간접 확인
 
-**EL (도혁) 코멘트**: GT bbox 기준 Top-1 0.8750 / Top-5 0.9612 확인 완료. Pred bbox 기준 수치는 승준(ME) EfficientNet-B2 학습 완료 후 측정 예정.
+**EL (도혁) 코멘트**: Pred bbox 기준 Stage 2 Top-1 직접 산출은 inference crop 라벨 연결 구조 부재로 불가능함을 ME (승준) 확인. GT bbox Top-1과 E2E mAP는 평가 방식이 달라 직접 비교하지 않는다. E2E mAP val 0.9361 / test 0.9215 및 Kaggle LB 0.96044를 Pred bbox가 반영된 최종 파이프라인 성능 proxy로 해석하며, 실제 제출 환경에서의 end-to-end 안정성을 간접 확인한 것으로 기록한다.
 
-**PM (호정) 보고 필요 여부**: N (Pred 측정 완료 후 Y로 변경)
+**PM (호정) 보고 필요 여부**: Y (분석 완료)
