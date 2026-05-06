@@ -12,7 +12,7 @@
 |------|-------------|-------------|------|
 | 전체 Top-1 Acc (val) | 0.9031 | 0.8750 | 하락 but Kaggle LB 상승 (정상) |
 | 전체 Top-5 Acc (val) | 0.9774 | 0.9612 | - |
-| Kaggle LB mAP | 0.68914 | 0.9458 | 핵심 지표 — 회복 완료 |
+| Kaggle LB mAP | 0.68914 | 0.90845 (Public LB) / 내부 E2E test 0.9458 | 핵심 지표 — 회복 완료 |
 | 학습 시간 | 119.7분 | - | - |
 
 > 전체 Top-1 하락이 있어도 Kaggle LB 상승이면 긍정적으로 판단
@@ -33,12 +33,11 @@
 
 ## Step 3. Kaggle Target-Class 성능 확인
 
-- [ ] Kaggle 평가 기준 클래스 수 확정 (56개 vs 59개 혼재 — 확정 필요)
+- [x] Kaggle 평가 기준 클래스 수 확정 완료 (57클래스, category_id 기준, 2026-04-30)
 - [ ] Kaggle target class 중 새 데이터셋에서 커버되는 클래스 수 확인
 - [ ] 기존 279클래스 중 Kaggle target에 포함된 클래스 성능 별도 확인
 
-> Kaggle 56/59 기준은 현재 문서에 혼재 — 공식 category_id 기준으로 통일 필요
-> 통일 전까지 coverage 수치는 임시값으로 표기
+> Kaggle 평가 기준 클래스 수 57클래스로 확정 완료 (2026-04-30)
 
 ---
 
@@ -72,7 +71,7 @@
 ## Step 6. HPO 진입 판단
 
 **HPO 진입 전 필수 확인:**
-- [ ] Kaggle 56/59 기준 확정
+- [x] Kaggle 57클래스 기준 확정 완료 (2026-04-30)
 - [ ] new baseline loss curve 정상 수렴 확인
 - [ ] mapping mismatch 없음 확인
 - [ ] GT vs Pred gap 확인
@@ -88,11 +87,11 @@
 |------|------|------|
 | 전체 Top-1 (val) | 0.8750 | 기존 대비 하락, Kaggle LB 상승으로 정상 판단 |
 | 전체 Top-5 (val) | 0.9612 | - |
-| Kaggle LB | 0.9458 | 회복 완료 (305cls, mapping 수정) |
+| Kaggle LB | 0.90845 (Public LB) / 내부 E2E test 0.9458 | 회복 완료 (305cls, mapping 수정) |
 | GT vs Pred gap | - | 측정 예정 |
 | rare class 이상 신호 | 없음 | 정상 |
 | HPO 진입 가능 여부 | 완료 | Grid Search + Optuna 진행 완료 |
 
-**EL (도혁) 코멘트**: 305cls 기반 새 baseline 확정 완료. Kaggle LB 0.9458 회복. Grid Search 12조합 → Optuna 15 trials 완료 (Best Top-1 0.9041). GT vs Pred gap은 EfficientNet-B2 학습 완료 후 측정 예정.
+**EL (도혁) 코멘트**: 305cls 기반 새 baseline 확정 완료. Kaggle Public LB 0.90845 / 내부 E2E test mAP 0.9458 회복. Grid Search 12조합 → Optuna 15 trials 완료 (Best Top-1 0.9041). GT vs Pred gap은 EfficientNet-B2 학습 완료 후 측정 예정.
 
 **PM (호정) 보고 필요 여부**: Y (Optuna 결과 보고 완료 — PR #160)
