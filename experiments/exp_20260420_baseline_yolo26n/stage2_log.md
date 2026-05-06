@@ -39,17 +39,14 @@
 - Top-1 Accuracy (test): 0.9042
 
 ### Stage 2 (Classifier) - Pred bbox 기준
-- Top-1 Accuracy: 미측정 (측정 예정)
-- Top-5 Accuracy: 미측정 (측정 예정)
+- Top-1 Accuracy: 직접 측정 불가 (inference crop 라벨 연결 구조 부재)
+- Top-5 Accuracy: 직접 측정 불가 (inference crop 라벨 연결 구조 부재)
 
 ### GT vs Pred 괴리 분석
 - GT Top-1: 0.9031
-- Pred Top-1: 미측정
-- Gap: 측정 예정
-- 괴리 원인 추정:
-  - [ ] Detection 문제 (Stage 1 bbox 오차)
-  - [ ] Classifier 문제 (Stage 2 모델 한계)
-  - [ ] 데이터/라벨 문제
+- Pred Top-1: 직접 산출 불가 — E2E mAP를 최종 파이프라인 성능 proxy로 해석
+- Gap: 직접 계산 불가
+- 괴리 원인 추정: E2E mAP 기준 간접 확인 완료
 
 ## 결과 해석
 - GT bbox 기준 Top-1 0.9031로 분류기 기준선 확보
@@ -72,7 +69,9 @@
 - [x] class index / label mapping mismatch 확인 → 완료 (PR #144, #145)
 
 ## 다음 액션
-submission 재제출 결과 확인 후 Kaggle mAP 회복 여부 기준으로 GT vs Pred 분리 분석 진행 (#80 이슈 연계)
+- [x] submission 재제출 후 Kaggle mAP 회복 확인 완료 (0.9458, 2026-04-30)
+- [x] GT vs Pred 분리 분석 완료 — Pred bbox 직접 측정 불가 확인, E2E mAP proxy로 간접 확인
+- [ ] Final Model (EfficientNetV2-S lr0=0.0003) 기준 결과는 stage2_log 별도 문서 참고
 
 ## EL (도혁) 코멘트
 GT bbox 기준 Top-1 0.9031로 기준선 확보. Kaggle mAP 0.3754와의 괴리는 submission 포맷 수정 후 재평가 예정. Pred bbox 기준 성능 미측정 상태로 GT vs Pred 분리 분석이 다음 우선 과제.
