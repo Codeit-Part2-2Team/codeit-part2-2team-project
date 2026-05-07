@@ -181,6 +181,12 @@ python scripts/pipeline/stage2_predict.py \
 
 ---
 
+## 데이터셋 공유 과정 시연
+
+<a href="https://youtu.be/d6ZBIf7Vs80">시연 영상</a>
+
+---
+
 ## 라이선스
 
 본 프로젝트는 [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) (AGPL-3.0)을 사용합니다.  
