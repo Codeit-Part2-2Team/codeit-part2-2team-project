@@ -111,7 +111,7 @@ GT bbox Top-1과 E2E mAP는 평가 방식이 달라 직접 비교하지 않으�
 - [x] Final submission Weight Path 확보 완료 (PR #173 코멘트 — ME 승준 제공)
 - Inference Command TBD (scripts/pipeline/README.md 참고)
 - Main / Backup submission 정리
-- 보고서 연계 (AL 찬우)
+- [x] 보고서 연계 진행 중 (EL 요약 문서 찬우님 공유 완료 — Decision Story, 향후 고도화 전략 포함)
 - 협업 일지 작성
 
 ---
