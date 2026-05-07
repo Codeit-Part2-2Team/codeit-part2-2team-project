@@ -110,7 +110,7 @@ GT bbox Top-1과 E2E mAP는 평가 방식이 달라 직접 비교하지 않으�
 - [x] Stage 1 raw multi-object 신뢰성 간접 확인 완료 (ME 승준 보고서 기준 재현율 0.9826)
 - [x] Final submission Weight Path 확보 완료 (PR #173 코멘트 — ME 승준 제공)
 - Inference Command TBD (scripts/pipeline/README.md 참고)
-- Main / Backup submission 정리
+- [x] Stage 2 재현성 이슈 확인 완료 (한계점으로 기록 — D-4 일정상 코드 수정 보류)
 - [x] 보고서 연계 진행 중 (EL 요약 문서 찬우님 공유 완료 — Decision Story, 향후 고도화 전략 포함)
 - 협업 일지 작성
 
