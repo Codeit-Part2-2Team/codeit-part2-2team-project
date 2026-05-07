@@ -56,5 +56,5 @@ ResNet50 Baseline 대비 EfficientNet-B2 모델 교체 후 성능 비교
 Optuna 파라미터 적용 시 B2에서 안정적인 학습 확인. ResNet50 대비 개선됐으나 V2-S가 Kaggle LB 기준으로 더 높아 Final Model에서 제외됨.
 
 ## 가중치/결과 위치
-- 가중치: Google Drive (PR #165 참고 — ME 승준 문의)
+- 가중치: Google Drive (PR #173 코멘트 참고 — ME 승준 제공)
 - 결과 로그: experiments/exp_20260503_efficientnet-b2/
