@@ -57,5 +57,5 @@ EfficientNet-B2 대비 EfficientNetV2-S 모델 교체 후 성능 비교
 B2 Optuna 파라미터 V2-S에 그대로 이식 시 lr0 과다 문제 확인. 모델 크기(24M vs 9M) 차이로 인해 동일 lr0 적용이 부적절함을 파악. lr0=0.0003으로 재조정 후 재실험 진행.
 
 ## 가중치/결과 위치
-- 가중치: Google Drive (PR #165 참고 — ME 승준 문의)
+- 가중치: Google Drive (PR #173 코멘트 참고 — ME 승준 제공)
 - 결과 로그: experiments/exp_20260503_efficientnetv2-s/

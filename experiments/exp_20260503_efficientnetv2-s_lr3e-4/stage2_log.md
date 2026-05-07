@@ -28,7 +28,7 @@ EfficientNetV2-S lr0 재조정 후 성능 개선 확인 및 Final Model 확정
 ## 실험 설정
 - 모델: EfficientNetV2-S (pretrained)
 - 데이터 조건: GT bbox 기준 크롭 이미지, 305클래스, Albumentations 증강 적용
-- 특이사항: lr0를 B2 최적값(0.000645)의 절반 수준인 0.0003으로 낮춰 재조정
+- 특이사항: 이전 HPO에서 확인된 lr0=0.000645를 V2-S에 그대로 적용했을 때 조기 수렴 발생. lr0를 0.0003으로 낮춰 재조정
 
 ## 실험 결과
 
@@ -58,5 +58,5 @@ EfficientNetV2-S lr0 재조정 후 성능 개선 확인 및 Final Model 확정
 lr0=0.0003 재조정으로 V2-S 지역 최솟값 고착 해소 확인. Kaggle LB 0.96044로 전체 실험군 최고 성능 기록. 모델 크기에 맞는 lr0 조정이 핵심 인사이트. Final Model로 확정.
 
 ## 가중치/결과 위치
-- 가중치: Google Drive (PR #166 참고 — ME 승준 문의)
+- 가중치: Google Drive (PR #173 코멘트 참고 — ME 승준 제공)
 - 결과 로그: experiments/exp_20260503_efficientnetv2-s_lr3e-4/
