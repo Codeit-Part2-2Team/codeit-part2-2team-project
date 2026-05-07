@@ -121,7 +121,7 @@ GT bbox Top-1과 E2E mAP는 평가 방식이 달라 직접 비교하지 않으�
 - 손바닥 위 알약, 복잡한 배경, 다양한 조명 조건 등 실제 서비스 환경 데이터 부재
 - 모바일 앱 배포 미완성
 - GT vs Pred 직접 측정 파이프라인 미구현
-- Stage 1 raw multi-object 신뢰성 직접 검증 미완료 (간접 확인으로 대체)
+- Stage 2 학습 코드 워커 시딩 누락 및 WeightedRandomSampler generator 누락으로 완전한 재현성 보장 불가 (ME 승준 확인, D-4 일정상 코드 수정 보류)
 
 ---
 
