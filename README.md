@@ -183,9 +183,7 @@ python scripts/pipeline/stage2_predict.py \
 
 ## 데이터셋 공유 과정 시연
 
-<a href="https://youtu.be/d6ZBIf7Vs80">영상 보기 1</a>
-
-[![영상 보기 2](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://youtu.be/d6ZBIf7Vs80)
+<a href="https://youtu.be/d6ZBIf7Vs80">시연 영상</a>
 
 ---
 
