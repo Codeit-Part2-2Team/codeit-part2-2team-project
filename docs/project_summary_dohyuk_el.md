@@ -1,6 +1,6 @@
 # 알약 탐지 프로젝트 — EL (도혁) 관점 정리
 
-작성일: 2026-05-06
+작성일: 2026-05-06 (최종 수정: 2026-05-07)
 
 ---
 
@@ -146,7 +146,7 @@ Stage 2는 ResNet50을 baseline으로 설정했다. 모델 교체 기준을 base
 - Pred bbox 기준 Stage 2 Top-1을 직접 산출하지 못했고, E2E mAP와 Kaggle LB를 최종 파이프라인 성능 proxy로 활용했다.
 - GT bbox Top-1과 E2E mAP는 서로 다른 지표이므로 직접 비교하지 않는다.
 - val/test E2E mAP gap은 약 1.46%p로, split별 데이터 분포 차이에 따른 변동 가능성이 있다.
-- 손바닥 위 알약, 복잡한 배경, 다양한 조명 등 실제 사용자 환경 데이터는 충분히 반영되지 않았다.
+- Stage 2 학습 코드 워커 시딩 누락 및 WeightedRandomSampler generator 누락으로 완전한 재현성이 보장되지 않는다. (D-4 일정상 코드 수정 보류)
 
 ---
 
