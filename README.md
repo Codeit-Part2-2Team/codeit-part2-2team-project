@@ -19,6 +19,24 @@ K-DT AI 엔지니어 과정 초급 팀 프로젝트 — 경구약제 이미지�
 
 ---
 
+## 팀 보고서
+
+
+
+---
+
+## 협업일지 및 팀 일간 보고서
+
+<a href="https://github.com/Codeit-Part2-2Team/codeit-part2-2team-project/discussions?discussions_q=is%3Aopen+sort%3Adate_created">바로 가기</a>
+
+---
+
+## 데이터셋 공유 과정 시연
+
+<a href="https://youtu.be/d6ZBIf7Vs80">시연 영상</a>
+
+---
+
 ## 프로젝트 파이프라인
 
 ```
@@ -178,12 +196,6 @@ python scripts/pipeline/stage2_predict.py \
 
 - 팀당 **10회/일** 제한, **개인 제출 금지**
 - 제출 전 `#제출이슈` 채널에 공지 후 진행
-
----
-
-## 데이터셋 공유 과정 시연
-
-<a href="https://youtu.be/d6ZBIf7Vs80">시연 영상</a>
 
 ---
 
