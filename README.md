@@ -21,7 +21,7 @@ K-DT AI 엔지니어 과정 초급 팀 프로젝트 — 경구약제 이미지�
 
 ## 팀 보고서 📊
 
-<a href="https://Codeit-Part2-2Team.github.io/codeit-part2-2team-project/%EA%B2%BD%EA%B5%AC%EC%95%BD%EC%A0%9C_%EB%B3%B4%EA%B3%A0%EC%84%9C_2%ED%8C%80.pdf">바로 가기</a>
+<a href="https://Codeit-Part2-2Team.github.io/codeit-part2-2team-project/reports/%EA%B2%BD%EA%B5%AC%EC%95%BD%EC%A0%9C_%EB%B3%B4%EA%B3%A0%EC%84%9C_2%ED%8C%80.pdf">바로 가기</a>
 
 ---
 
